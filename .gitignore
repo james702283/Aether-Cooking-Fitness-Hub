@@ -1,0 +1,25 @@
+# Secrets - NEVER commit these
+.env
+.env.*
+!/.env.example
+
+# Log files
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS-generated files
+.DS_Store
+Thumbs.db
+
+# Server dependencies
+/server/node_modules
+
+# Client dependencies and build files
+/client/node_modules
+/client/dist
+/client/.vite
+/client/.eslintcache
+/client/coverage
