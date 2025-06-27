@@ -1,3 +1,5 @@
+![Aether Cooking & Fitness Hub Screenshot](https://placehold.co/1200x600/1a1a1a/ffffff?text=Aether+Cooking+%26+Fitness+Hub)
+
 # Aether Cooking & Fitness Hub
 
 ## Overview
@@ -73,6 +75,12 @@ Aether Kitchen & Fitness is a full-stack application built with a modern, robust
 * **Customizable Profile:** Personalize your experience by managing your username, email, and password.
 * **Dietary Profile:** Inform the AI of your specific food allergies and items to avoid to further refine recipe generation.
 
+### ⭐ Interactive & Social Features
+
+* **AI-Personalized Feedback:** Give "Thumbs Up" or "Thumbs Down" feedback on AI-generated recipes. The AI learns from your dislikes and tailors future suggestions to better match your taste.
+* **Public Recipe Ratings:** Contribute to the community by giving saved recipes a star rating from 1 to 5. The average rating and total vote count are visible to all users, helping everyone discover the best recipes.
+* **Community Comment System:** Engage in discussions on saved recipes. Share your cooking experiences, ask questions, or offer tips in a threaded comment section. You have full control to delete your own comments.
+
 ---
 
 ## Getting Started
@@ -142,3 +150,4 @@ To get Aether Kitchen & Fitness running on your local machine for development an
         Vite will start the development server, and you can access the application at `http://localhost:5173` (or another port if 5173 is busy).
 
 You should now have the full application running locally.
+
