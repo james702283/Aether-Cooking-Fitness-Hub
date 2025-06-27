@@ -183,7 +183,7 @@ router.post('/image', protect, async (req, res) => {
     }
 });
 
-// --- NEW DELETE ENDPOINTS ---
+// --- DELETE ENDPOINTS ---
 
 // DELETE a specific meal entry from a log
 router.delete('/meal/:logId/:mealId', protect, async (req, res) => {
@@ -224,5 +224,34 @@ router.delete('/workout/:logId/:workoutId', protect, async (req, res) => {
         res.status(500).json({ message: "Error deleting workout entry." });
     }
 });
+
+// --- CORRECTED DELETE IMAGE ROUTE ---
+// DELETE an image from a log entry
+router.delete("/image/:logId/:imageId", protect, async (req, res) => {
+    try {
+        const { logId, imageId } = req.params;
+
+        // Use findOneAndUpdate with $pull for a single atomic and more reliable operation
+        const updatedLog = await DailyLog.findOneAndUpdate(
+            { _id: logId, userId: req.user._id },      // Query to find the correct log for the authenticated user
+            { $pull: { images: { _id: imageId } } }, // The operation to remove the image from the array
+            { new: true }                              // Option to return the document *after* the update
+        );
+
+        if (!updatedLog) {
+            // This will be null if the log wasn't found or an image with that ID didn't exist in the array
+            return res.status(404).json({ message: "Log or image not found." });
+        }
+
+        // TODO: Optionally, add logic here to delete the image from your cloud storage (e.g., Cloudinary, S3) as well.
+
+        res.status(200).json(updatedLog); // Return the updated log object to the frontend
+
+    } catch (error) {
+        console.error("Error deleting image:", error);
+        res.status(500).json({ message: "Server error while deleting image." });
+    }
+});
+
 
 module.exports = router;

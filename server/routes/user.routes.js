@@ -1,7 +1,7 @@
 const router = require('express').Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const User = require('../models/User.model'); // <-- Always require the model directly
+const User = require('../models/User.model');
 const protect = require('../middleware/authMiddleware');
 
 // --- SIGNUP ---
@@ -79,5 +79,33 @@ router.put('/profile', protect, async (req, res) => {
         res.status(500).json({ message: 'Server error updating profile' });
     }
 });
+
+// --- NEW FEEDBACK ROUTE ---
+// POST to add feedback (e.g., a disliked recipe)
+router.post('/feedback', protect, async (req, res) => {
+    const { dislikedRecipeTitle } = req.body;
+    if (!dislikedRecipeTitle) {
+        return res.status(400).json({ message: 'Recipe title is required.' });
+    }
+
+    try {
+        const user = await User.findById(req.user.id);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found.' });
+        }
+
+        // Add the title to the disliked list if it's not already there
+        if (!user.dislikedRecipes.includes(dislikedRecipeTitle)) {
+            user.dislikedRecipes.push(dislikedRecipeTitle);
+            await user.save();
+        }
+
+        res.status(200).json({ message: 'Feedback recorded.' });
+    } catch (error) {
+        console.error('Error recording feedback:', error);
+        res.status(500).json({ message: 'Server error while recording feedback.' });
+    }
+});
+
 
 module.exports = router;

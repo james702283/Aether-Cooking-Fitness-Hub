@@ -1,8 +1,6 @@
-// FINAL, COMPLETE & CORRECTED VERSION: Fixes only the Workout Log to match the Meal Log functionality.
-
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
-import { BookOpen, ChefHat, LogOut, X, Share2, FileDown, AlertTriangle, CheckCircle, Save, Trash2, Printer, SlidersHorizontal, ChevronDown, ChevronLeft, ChevronRight, Calendar, Dumbbell, Utensils, BookHeart, Plus, ImagePlus } from 'lucide-react';
+import { BookOpen, ChefHat, LogOut, X, Share2, FileDown, AlertTriangle, CheckCircle, Save, Trash2, Printer, SlidersHorizontal, ChevronDown, ChevronLeft, ChevronRight, Calendar, Dumbbell, Utensils, BookHeart, Plus, ImagePlus, ThumbsUp, ThumbsDown, Star } from 'lucide-react';
 
 // --- Suggestion Data for Filters ---
 const CUISINE_SUGGESTIONS = ['Italian', 'Mexican', 'Chinese', 'Indian', 'Japanese', 'Thai', 'French', 'Greek', 'Spanish', 'Korean', 'Vietnamese', 'Mediterranean', 'American', 'BBQ', 'Caribbean'];
@@ -38,6 +36,7 @@ export default function App() {
     const [token, setToken] = useState(null);
     const [userEmail, setUserEmail] = useState('');
     const [username, setUsername] = useState('');
+    const [userId, setUserId] = useState(null);
     const [isAuthReady, setIsAuthReady] = useState(false);
     const [modalContent, setModalContent] = useState(null);
 
@@ -48,8 +47,10 @@ export default function App() {
         setToken(null);
         setUserEmail('');
         setUsername('');
+        setUserId(null); 
         localStorage.removeItem('token');
         localStorage.removeItem('userEmail');
+        localStorage.removeItem('userId');
     }, []);
 
     useEffect(() => {
@@ -61,6 +62,8 @@ export default function App() {
                     const { data } = await api.get('/api/users/profile', authHeader(existingToken));
                     setUsername(data.username || '');
                     setUserEmail(data.email || '');
+                    setUserId(data._id || null);
+                    localStorage.setItem('userId', data._id);
                 } catch (error) {
                     console.error("Session token is invalid. Logging out.");
                     handleSignOut();
@@ -78,7 +81,9 @@ export default function App() {
             const { data } = await api.get('/api/users/profile', authHeader(newToken));
             setUsername(data.username || '');
             setUserEmail(data.email || '');
+            setUserId(data._id || null);
             localStorage.setItem('userEmail', data.email);
+            localStorage.setItem('userId', data._id);
         } catch (error) {
             console.error("Failed to fetch profile after login.");
             setUserEmail(email);
@@ -100,6 +105,13 @@ export default function App() {
 
     return (
         <div className="font-sans text-white bg-cover bg-center bg-fixed" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1556911220-e15b29be8c8f?q=80&w=2070&auto=format&fit=crop')" }}>
+            {/* --- NEW: Font Import --- */}
+            <style>
+                {`
+                    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+                    .font-poppins { font-family: 'Poppins', sans-serif; }
+                `}
+            </style>
             <div className="min-h-screen w-full bg-black/50 flex flex-col">
                 {!token ? (
                     <AuthScreen setToken={handleSetToken} />
@@ -108,7 +120,7 @@ export default function App() {
                         <Header userEmail={userEmail} username={username} handleSignOut={handleSignOut} />
                         <main className="flex-grow flex justify-center p-4 md:p-8">
                            <div className="w-full max-w-7xl">
-                               <MainContent token={token} showModal={showModal} hideModal={hideModal} onProfileUpdate={handleProfileUpdate}/>
+                               <MainContent token={token} userId={userId} showModal={showModal} hideModal={hideModal} onProfileUpdate={handleProfileUpdate}/>
                            </div>
                         </main>
                     </>
@@ -120,9 +132,9 @@ export default function App() {
 }
 
 // --- Main Content & Navigation ---
-const MainContent = ({ token, showModal, hideModal, onProfileUpdate }) => {
+const MainContent = ({ token, userId, showModal, hideModal, onProfileUpdate }) => {
     const [activeTab, setActiveTab] = useState('generator');
-    const tabProps = { token, showModal, hideModal, onProfileUpdate };
+    const tabProps = { token, userId, showModal, hideModal, onProfileUpdate };
 
     return (
         <div>
@@ -139,13 +151,14 @@ const MainContent = ({ token, showModal, hideModal, onProfileUpdate }) => {
     );
 };
 
+// --- UPDATED: Navigation Order ---
 const TabNav = ({ activeTab, setActiveTab }) => {
     const tabs = [
         { id: 'generator', label: 'AI Recipes', icon: ChefHat },
-        { id: 'saved', label: 'Saved Recipes', icon: BookOpen },
         { id: 'meal', label: 'Meal Log', icon: Utensils },
         { id: 'workout', label: 'Workout Log', icon: Dumbbell },
         { id: 'calendar', label: 'Calendar', icon: Calendar },
+        { id: 'saved', label: 'Saved Recipes', icon: BookOpen },
         { id: 'settings', label: 'Settings', icon: SlidersHorizontal },
     ];
     return (
@@ -166,12 +179,13 @@ const TabNav = ({ activeTab, setActiveTab }) => {
 
 // --- Page-level Components ---
 
+// --- UPDATED: Header Branding ---
 const Header = ({ userEmail, username, handleSignOut }) => (
     <header className="p-4 bg-black/20 backdrop-blur-md border-b border-white/10 sticky top-0 z-30">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
             <div className="flex items-center space-x-4">
                  <ChefHat className="w-8 h-8 text-green-400" />
-                 <h1 className="text-2xl font-bold hidden md:block">AI Kitchen Hub</h1>
+                 <h1 className="text-xl md:text-2xl font-poppins font-semibold tracking-wide hidden md:block">Aether Cooking & Fitness Hub</h1>
             </div>
             <div className="flex items-center gap-4">
                 <span className="text-gray-400 hidden sm:inline">
@@ -400,7 +414,115 @@ const CustomSelect = ({ label, value, onChange, options }) => {
     );
 };
 
-const RecipeGeneratorTab = ({ token, showModal, hideModal }) => {
+const StarRating = ({ rating, onRatingChange, disabled = false }) => {
+    const [hoverRating, setHoverRating] = useState(0);
+
+    return (
+        <div className="flex items-center">
+            {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                    key={star}
+                    type="button"
+                    disabled={disabled}
+                    onClick={() => onRatingChange(star)}
+                    onMouseEnter={() => !disabled && setHoverRating(star)}
+                    onMouseLeave={() => !disabled && setHoverRating(0)}
+                    className="p-1 disabled:cursor-not-allowed"
+                >
+                    <Star
+                        size={30}
+                        className={`transition-colors duration-200 ${star <= (hoverRating || rating) ? 'text-yellow-400' : 'text-gray-500'}`}
+                        fill={star <= (hoverRating || rating) ? 'currentColor' : 'none'}
+                    />
+                </button>
+            ))}
+        </div>
+    );
+};
+
+const CommentSection = ({ recipeId, initialComments, token, userId, onCommentsUpdate }) => {
+    const [comments, setComments] = useState(initialComments || []);
+    const [newComment, setNewComment] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const handleCommentSubmit = async (e) => {
+        e.preventDefault();
+        if (!newComment.trim()) return;
+
+        setIsSubmitting(true);
+        try {
+            const { data } = await api.post(`/api/recipes/${recipeId}/comment`, { commentText: newComment }, authHeader(token));
+            setComments(data.comments);
+            if (onCommentsUpdate) onCommentsUpdate(data.comments);
+            setNewComment("");
+        } catch (error) {
+            console.error("Failed to post comment", error);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleDeleteComment = async (commentId) => {
+        try {
+            await api.delete(`/api/recipes/${recipeId}/comment/${commentId}`, authHeader(token));
+            const updatedComments = comments.filter(c => c._id !== commentId);
+            setComments(updatedComments);
+            if (onCommentsUpdate) onCommentsUpdate(updatedComments);
+        } catch (error) {
+            console.error("Failed to delete comment", error);
+        }
+    };
+
+    return (
+        <div className="mt-6">
+            <h4 className="text-xl font-semibold mb-3">Community Feedback</h4>
+            <form onSubmit={handleCommentSubmit} className="mb-4">
+                <textarea
+                    value={newComment}
+                    onChange={(e) => setNewComment(e.target.value)}
+                    placeholder="Add a public comment..."
+                    rows="3"
+                    className="w-full bg-black/30 p-3 rounded-lg border border-transparent focus:border-green-400 focus:outline-none resize-none"
+                    disabled={isSubmitting}
+                />
+                <div className="flex justify-end mt-2">
+                    <button type="submit" disabled={isSubmitting || !newComment.trim()} className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-colors disabled:bg-gray-500">
+                        {isSubmitting ? 'Posting...' : 'Post Comment'}
+                    </button>
+                </div>
+            </form>
+
+            <div className="space-y-4">
+                {comments.length > 0 ? (
+                    comments.slice().reverse().map((comment) => (
+                        <div key={comment._id} className="bg-black/20 p-3 rounded-lg flex gap-3">
+                            <div className="flex-shrink-0 w-10 h-10 bg-green-800 rounded-full flex items-center justify-center font-bold">
+                                {comment.username.charAt(0).toUpperCase()}
+                            </div>
+                            <div className="flex-grow">
+                                <div className="flex justify-between items-center">
+                                    <span className="font-bold text-green-300">{comment.username}</span>
+                                    {comment.userId === userId && (
+                                        <button onClick={() => handleDeleteComment(comment._id)} className="text-red-400 hover:text-red-300 p-1 rounded-full hover:bg-red-500/20">
+                                            <Trash2 size={16} />
+                                        </button>
+                                    )}
+                                </div>
+                                <span className="text-xs text-gray-400">{new Date(comment.createdAt).toLocaleString()}</span>
+                                <p className="text-gray-200 mt-1">{comment.commentText}</p>
+                            </div>
+                        </div>
+                    ))
+                ) : (
+                    <p className="text-gray-400 text-center py-4">No comments yet. Be the first to share your thoughts!</p>
+                )}
+            </div>
+        </div>
+    );
+};
+
+
+const RecipeGeneratorTab = ({ token, showModal, hideModal, userId }) => {
     const [ingredients, setIngredients] = useState([]);
     const [generatedRecipes, setGeneratedRecipes] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -451,6 +573,7 @@ const RecipeGeneratorTab = ({ token, showModal, hideModal }) => {
                 onClose={hideModal} 
                 showNotification={showNotification} 
                 token={token} 
+                userId={userId}
                 isGenerated={true} 
             />
         );
@@ -545,7 +668,7 @@ const RecipeGeneratorTab = ({ token, showModal, hideModal }) => {
     );
 };
 
-const SavedRecipesTab = ({ token, showModal, hideModal }) => {
+const SavedRecipesTab = ({ token, userId, showModal, hideModal }) => {
     const [recipes, setRecipes] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [notification, setNotification] = useState('');
@@ -571,6 +694,12 @@ const SavedRecipesTab = ({ token, showModal, hideModal }) => {
         fetchRecipes();
     }, [fetchRecipes]);
 
+    const handleRecipeUpdate = useCallback((updatedRecipe) => {
+        setRecipes(currentRecipes => 
+            currentRecipes.map(r => r._id === updatedRecipe._id ? updatedRecipe : r)
+        );
+    }, []);
+
     const handleSelectRecipe = (recipe) => {
         showModal(
             <RecipeDetailView 
@@ -578,6 +707,9 @@ const SavedRecipesTab = ({ token, showModal, hideModal }) => {
                 onClose={hideModal} 
                 showNotification={showNotification} 
                 token={token}
+                userId={userId}
+                isGenerated={false}
+                onRecipeUpdate={handleRecipeUpdate}
             />
         );
     };
@@ -606,6 +738,15 @@ const SavedRecipesTab = ({ token, showModal, hideModal }) => {
         }
     };
     
+    const calculateAverageRating = (ratings) => {
+        if (!ratings || ratings.length === 0) {
+            return { average: 'N/A', count: 0 };
+        }
+        const total = ratings.reduce((acc, r) => acc + r.rating, 0);
+        const average = total / ratings.length;
+        return { average: average.toFixed(1), count: ratings.length };
+    };
+
     if (isLoading) {
         return <div className="bg-gray-900/50 backdrop-blur-md p-6 rounded-2xl flex justify-center items-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div></div>;
     }
@@ -618,18 +759,26 @@ const SavedRecipesTab = ({ token, showModal, hideModal }) => {
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {recipes.length > 0 ? (
-                    recipes.map(recipe => (
-                        <div key={recipe._id} className="bg-black/20 p-4 rounded-xl flex flex-col justify-between">
-                            <div>
-                                <h3 className="text-xl font-bold text-green-300 mb-2">{recipe.title}</h3>
-                                <p className="text-gray-400 text-sm line-clamp-3">{Array.isArray(recipe.ingredients) ? recipe.ingredients.join(', ') : ''}</p>
+                    recipes.map(recipe => {
+                        const { average, count } = calculateAverageRating(recipe.ratings);
+                        return (
+                            <div key={recipe._id} className="bg-black/20 p-4 rounded-xl flex flex-col justify-between transition-all hover:shadow-lg hover:shadow-green-500/10">
+                                <div>
+                                    <h3 className="text-xl font-bold text-green-300 mb-2">{recipe.title}</h3>
+                                    <p className="text-gray-400 text-sm line-clamp-3 mb-2">{Array.isArray(recipe.ingredients) ? recipe.ingredients.join(', ') : ''}</p>
+                                    <div className="text-sm flex items-center gap-2 text-yellow-400">
+                                        <Star size={16} fill="currentColor"/>
+                                        <span className="font-bold">{average}</span>
+                                        <span className="text-gray-400">({count} {count === 1 ? 'vote' : 'votes'})</span>
+                                    </div>
+                                </div>
+                                <div className="mt-4 flex gap-2 justify-end">
+                                    <button onClick={() => handleDeleteClick(recipe)} className="p-2 text-red-400 hover:bg-red-500/20 rounded-full"><Trash2 size={18}/></button>
+                                    <button onClick={() => handleSelectRecipe(recipe)} className="flex-grow bg-green-500/80 hover:bg-green-500 text-white font-bold py-2 px-4 rounded-lg transition-colors">View</button>
+                                </div>
                             </div>
-                            <div className="mt-4 flex gap-2 justify-end">
-                                <button onClick={() => handleDeleteClick(recipe)} className="p-2 text-red-400 hover:bg-red-500/20 rounded-full"><Trash2 size={18}/></button>
-                                <button onClick={() => handleSelectRecipe(recipe)} className="flex-grow bg-green-500/80 hover:bg-green-500 text-white font-bold py-2 px-4 rounded-lg transition-colors">View</button>
-                            </div>
-                        </div>
-                    ))
+                        )
+                    })
                 ) : (
                     <p className="text-center text-gray-400 py-8 col-span-full">You haven't saved any recipes yet.</p>
                 )}
@@ -637,6 +786,164 @@ const SavedRecipesTab = ({ token, showModal, hideModal }) => {
         </div>
     );
 };
+
+const RecipeDetailView = ({ recipe, onClose, showNotification, token, userId, isGenerated, onRecipeUpdate }) => {
+    const [isSaving, setIsSaving] = useState(false);
+    const [currentRecipe, setCurrentRecipe] = useState(recipe);
+
+    useEffect(() => {
+        setCurrentRecipe(recipe);
+    }, [recipe]);
+
+    const formatInstructions = (instructions) => {
+        if (instructions) {
+            if (Array.isArray(instructions)) return instructions.join('\n');
+            if (typeof instructions === 'string') return instructions.replace(/\\n/g, '\n');
+        }
+        return 'Instructions not available.';
+    };
+    
+    const handleSave = async () => {
+        if (!currentRecipe) return;
+        setIsSaving(true);
+        try {
+            await api.post('/api/recipes', { ...currentRecipe, userId: undefined }, authHeader(token));
+            showNotification('Recipe saved successfully!');
+            onClose();
+        } catch (error) {
+            showNotification("Error: Could not save recipe.", true);
+        } finally {
+            setIsSaving(false);
+        }
+    };
+    
+    const handleFeedback = async (feedbackType) => {
+        if (feedbackType === 'dislike') {
+            try {
+                await api.post('/api/users/feedback', { dislikedRecipeTitle: currentRecipe.title }, authHeader(token));
+                showNotification('Thanks! We won\'t show you this again.');
+                onClose();
+            } catch (error) {
+                showNotification('Could not save feedback.', true);
+            }
+        }
+        if (feedbackType === 'like') {
+            showNotification('Glad you liked it!');
+        }
+    };
+
+    const handleRatingChange = async (newRating) => {
+        if (!currentRecipe._id) return;
+        try {
+            const { data } = await api.post(`/api/recipes/${currentRecipe._id}/rate`, { rating: newRating }, authHeader(token));
+            const updatedRecipe = { ...currentRecipe, ratings: data.ratings };
+            setCurrentRecipe(updatedRecipe);
+            if (onRecipeUpdate) onRecipeUpdate(updatedRecipe);
+            showNotification('Your rating has been submitted!');
+        } catch (error) {
+            showNotification('Failed to submit rating.', true);
+            console.error(error);
+        }
+    };
+
+    const handleCommentsUpdate = (newComments) => {
+        const updatedRecipe = { ...currentRecipe, comments: newComments };
+        setCurrentRecipe(updatedRecipe);
+        if (onRecipeUpdate) onRecipeUpdate(updatedRecipe);
+    };
+
+    const getShareableText = () => {
+        return `Recipe: ${currentRecipe.title}\n\nIngredients:\n${(Array.isArray(currentRecipe.ingredients) ? currentRecipe.ingredients.join('\n') : 'N/A')}\n\nInstructions:\n${formatInstructions(currentRecipe.instructions)}`;
+    };
+
+    const handleShare = async () => {
+        const text = getShareableText();
+        if (navigator.share) {
+            try {
+                await navigator.share({ title: currentRecipe.title, text });
+            } catch (err) {
+                if (err.name !== 'AbortError') {
+                    navigator.clipboard.writeText(text);
+                    showNotification('Recipe copied to clipboard!');
+                }
+            }
+        } else {
+            navigator.clipboard.writeText(text);
+            showNotification('Recipe copied to clipboard!');
+        }
+    };
+    
+    const handlePrint = () => {
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(`<html><head><title>${currentRecipe.title}</title><style>body{font-family:sans-serif;line-height:1.6;}ul{padding-left:20px;}</style></head><body>`);
+        printWindow.document.write(`<h2>${currentRecipe.title}</h2><h4>Ingredients</h4><ul>${Array.isArray(currentRecipe.ingredients) ? currentRecipe.ingredients.map(ing => `<li>${ing}</li>`).join('') : ''}</ul><h4>Instructions</h4><p>${formatInstructions(currentRecipe.instructions).replace(/\n/g, '<br>')}</p>`);
+        printWindow.document.write('</body></html>');
+        printWindow.document.close();
+        printWindow.print();
+    };
+
+    const userRatingObj = currentRecipe.ratings?.find(r => r.userId === userId);
+    const myRating = userRatingObj ? userRatingObj.rating : 0;
+
+    return (
+        <div className="bg-black/75 backdrop-blur-xl p-6 md:p-8 rounded-2xl relative max-h-[85vh] overflow-y-auto border border-white/10 w-full">
+            <button onClick={onClose} className="absolute top-4 right-4 text-white hover:text-gray-300 z-10 p-2 rounded-full hover:bg-white/10"><X size={24}/></button>
+            
+            <h3 className="text-3xl font-bold mb-4 text-green-300 text-center">{currentRecipe.title || 'Untitled Recipe'}</h3>
+            
+            <div className="grid md:grid-cols-2 gap-x-8">
+                <div>
+                    <h4 className="text-xl font-semibold mb-2">Ingredients</h4>
+                    <ul className="list-disc list-inside space-y-1 text-gray-200">
+                        {Array.isArray(currentRecipe.ingredients) ? currentRecipe.ingredients.map((ing, i) => <li key={i}>{ing}</li>) : <li>Ingredients not available.</li>}
+                    </ul>
+                </div>
+                <div className="mt-4 md:mt-0">
+                    <h4 className="text-xl font-semibold mb-2">Instructions</h4>
+                    <div className="text-gray-200 whitespace-pre-line leading-relaxed">{formatInstructions(currentRecipe.instructions)}</div>
+                </div>
+            </div>
+            
+            {!isGenerated && (
+                <div className="mt-6 pt-6 border-t border-white/10">
+                     <h4 className="text-xl font-semibold mb-2">Rate this Recipe</h4>
+                     <p className="text-sm text-gray-400 mb-3">Your rating is visible to the community.</p>
+                     <StarRating rating={myRating} onRatingChange={handleRatingChange} />
+                     <CommentSection 
+                        recipeId={currentRecipe._id}
+                        initialComments={currentRecipe.comments}
+                        token={token}
+                        userId={userId}
+                        onCommentsUpdate={handleCommentsUpdate}
+                     />
+                </div>
+            )}
+
+            <div className="mt-6 pt-4 border-t border-white/10 flex flex-wrap gap-2 justify-between items-center">
+                <div className="flex gap-2">
+                    {isGenerated && (
+                        <>
+                            <button onClick={() => handleFeedback('like')} className="p-2 text-green-400 bg-green-500/20 rounded-full hover:bg-green-500/40 transition-colors" title="I like this">
+                                <ThumbsUp size={20}/>
+                            </button>
+                             <button onClick={() => handleFeedback('dislike')} className="p-2 text-red-400 bg-red-500/20 rounded-full hover:bg-red-500/40 transition-colors" title="I dislike this">
+                                <ThumbsDown size={20}/>
+                            </button>
+                        </>
+                    )}
+                </div>
+                
+                <div className="flex flex-wrap gap-2 justify-end">
+                    {isGenerated && <button onClick={handleSave} disabled={isSaving} className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-colors disabled:bg-gray-500">{isSaving ? 'Saving...' : <><Save size={18}/> Save</>}</button>}
+                    <button onClick={handleShare} className="flex items-center gap-2 bg-gray-600/50 hover:bg-gray-600/80 text-white font-bold py-2 px-4 rounded-lg transition-colors"><Share2 size={18}/> Share</button>
+                    <ExportMenu getText={getShareableText} getTitle={() => currentRecipe.title || 'Recipe'} />
+                    <button onClick={handlePrint} className="flex items-center gap-2 bg-gray-600/50 hover:bg-gray-600/80 text-white font-bold py-2 px-4 rounded-lg transition-colors"><Printer size={18}/> Print</button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 
 const AccountSettingsTab = ({ token, onProfileUpdate }) => {
     const [isLoading, setIsLoading] = useState(true);
@@ -784,10 +1091,11 @@ const MealLogTab = ({ token, showModal, hideModal }) => {
     const [log, setLog] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
+    const [notification, setNotification] = useState({ message: '', isError: false });
 
     const showNotification = (message, isError = false) => {
-        if (isError) setError(message);
-        setTimeout(() => setError(''), 3000);
+        setNotification({message, isError});
+        setTimeout(() => setNotification({ message: '', isError: false }), 3000);
     };
 
     const formatDate = (d) => d.toISOString().split('T')[0];
@@ -853,6 +1161,7 @@ const MealLogTab = ({ token, showModal, hideModal }) => {
 
     return (
         <div className="bg-gray-900/50 backdrop-blur-md p-6 rounded-2xl border border-white/10">
+            {notification.message && <Notification message={notification.message} isError={notification.isError} />}
             {error && <Notification message={error} isError={true} />}
             <div className="flex justify-between items-center mb-4">
                 <h2 className="text-3xl font-bold">Today's Meal Log</h2>
@@ -910,6 +1219,7 @@ const MealLogTab = ({ token, showModal, hideModal }) => {
                         title="Meal Photos"
                         showModal={showModal}
                         hideModal={hideModal}
+                        showNotification={showNotification}
                     />
                 </div>
             </div>
@@ -921,10 +1231,11 @@ const WorkoutLogTab = ({ token, showModal, hideModal }) => {
     const [log, setLog] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
+    const [notification, setNotification] = useState({ message: '', isError: false });
 
     const showNotification = (message, isError = false) => {
-        if (isError) setError(message);
-        setTimeout(() => setError(''), 3000);
+        setNotification({message, isError});
+        setTimeout(() => setNotification({ message: '', isError: false }), 3000);
     };
 
     const formatDate = (d) => d.toISOString().split('T')[0];
@@ -990,6 +1301,7 @@ const WorkoutLogTab = ({ token, showModal, hideModal }) => {
 
     return (
         <div className="bg-gray-900/50 backdrop-blur-md p-6 rounded-2xl border border-white/10">
+            {notification.message && <Notification message={notification.message} isError={notification.isError} />}
             {error && <Notification message={error} isError={true} />}
             <div className="flex justify-between items-center mb-4">
                 <h2 className="text-3xl font-bold">Today's Workout Log</h2>
@@ -1040,6 +1352,7 @@ const WorkoutLogTab = ({ token, showModal, hideModal }) => {
                         title="Fitness / Progress Photos"
                         showModal={showModal}
                         hideModal={hideModal}
+                        showNotification={showNotification}
                     />
                 </div>
             </div>
@@ -1051,6 +1364,12 @@ const CalendarTab = ({ token, showModal, hideModal }) => {
     const [currentDate, setCurrentDate] = useState(new Date());
     const [monthlyData, setMonthlyData] = useState({});
     const [isLoading, setIsLoading] = useState(false);
+    const [notification, setNotification] = useState({ message: '', isError: false });
+
+    const showNotification = (message, isError = false) => {
+        setNotification({ message, isError });
+        setTimeout(() => setNotification({ message: '', isError: false }), 3000);
+    };
 
     const fetchMonthlyData = useCallback(async () => {
         setIsLoading(true);
@@ -1078,12 +1397,14 @@ const CalendarTab = ({ token, showModal, hideModal }) => {
                 token={token}
                 onClose={hideModal}
                 onLogUpdate={fetchMonthlyData}
+                showNotification={showNotification}
             />
         );
     };
 
     return (
         <div className="bg-gray-900/50 backdrop-blur-md p-6 rounded-2xl border border-white/10">
+            {notification.message && <Notification message={notification.message} isError={notification.isError} />}
             <h2 className="text-3xl font-bold mb-4">Calendar & History</h2>
             <p className="text-gray-300 mb-6">Select a day to review your complete log. At-a-glance totals are shown for each day.</p>
             <CalendarView 
@@ -1183,10 +1504,10 @@ const CalendarView = ({ currentDate, setCurrentDate, onDayClick, monthlyData, is
     );
 };
 
-const DailyDetailView = ({ date, token, onClose, onLogUpdate }) => {
+const DailyDetailView = ({ date, token, onClose, onLogUpdate, showNotification }) => {
     const [log, setLog] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
-    const [enlargedImageUrl, setEnlargedImageUrl] = useState(null);
+    const [enlargedImage, setEnlargedImage] = useState(null);
 
     const formatDate = (d) => d.toISOString().split('T')[0];
 
@@ -1206,6 +1527,21 @@ const DailyDetailView = ({ date, token, onClose, onLogUpdate }) => {
     useEffect(() => {
         fetchLog();
     }, [fetchLog]);
+
+    const handleDeleteImage = async (imageId) => {
+        if (!log?._id || !imageId) return;
+        if (!window.confirm("Are you sure you want to delete this image?")) return;
+
+        try {
+            const { data } = await api.delete(`/api/logs/image/${log._id}/${imageId}`, authHeader(token));
+            setLog(data);
+            onLogUpdate();
+            setEnlargedImage(null);
+        } catch (error) {
+            console.error("Error deleting image:", error);
+            if(showNotification) showNotification("Failed to delete image.", true);
+        }
+    };
     
     const getShareableTextForDay = () => {
         if (!log) return "No log data for this day.";
@@ -1245,12 +1581,12 @@ const DailyDetailView = ({ date, token, onClose, onLogUpdate }) => {
                  if (err.name !== 'AbortError') {
                     console.error("Share failed:", err);
                     navigator.clipboard.writeText(textToShare);
-                    alert('Content copied to clipboard!');
+                    showNotification('Content copied to clipboard!');
                  }
             }
         } else {
             navigator.clipboard.writeText(textToShare);
-            alert('Content copied to clipboard!');
+            showNotification('Content copied to clipboard!');
         }
     };
     
@@ -1299,11 +1635,11 @@ const DailyDetailView = ({ date, token, onClose, onLogUpdate }) => {
                             <h4 className="text-xl font-semibold flex items-center gap-2 mb-2"><ImagePlus/> Daily Photos</h4>
                             <div className="bg-black/20 p-4 rounded-lg">
                                <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
-                                    {log.images.map((image, index) => (
-                                        <div key={index} onClick={() => setEnlargedImageUrl(image.url)} className="cursor-pointer group relative overflow-hidden rounded-md">
+                                    {log.images.map((image) => (
+                                        <div key={image._id} onClick={() => setEnlargedImage(image)} className="cursor-pointer group relative overflow-hidden rounded-md">
                                             <img 
                                                 src={image.url} 
-                                                alt={`log ${index}`} 
+                                                alt={`log`} 
                                                 className="w-full h-20 object-cover transition-transform duration-300 ease-in-out group-hover:scale-110"
                                             />
                                              <div className={`absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${image.type === 'meal' ? 'text-green-300' : 'text-red-300'}`}>
@@ -1323,13 +1659,17 @@ const DailyDetailView = ({ date, token, onClose, onLogUpdate }) => {
             )}
         </div>
         
-        {enlargedImageUrl && (
+        {enlargedImage && (
             <div 
                 className="fixed inset-0 bg-black/70 backdrop-blur-md z-[60] flex justify-center items-center p-4"
-                onClick={() => setEnlargedImageUrl(null)}
+                onClick={() => setEnlargedImage(null)}
             >
                  <div onClick={(e) => e.stopPropagation()} className="w-full max-w-4xl flex justify-center">
-                    <EnlargedImageView imageUrl={enlargedImageUrl} onClose={() => setEnlargedImageUrl(null)} />
+                    <EnlargedImageView 
+                        image={enlargedImage} 
+                        onClose={() => setEnlargedImage(null)} 
+                        onDelete={handleDeleteImage}
+                    />
                 </div>
             </div>
         )}
@@ -1395,12 +1735,11 @@ const DayJournalSection = ({ log, token, onLogUpdate, date, notesType, title, pl
 
     const handleShareJournal = async () => {
         if (!text.trim()) {
-            alert("Journal is empty, nothing to share.");
             return;
         }
 
         const shareData = {
-            title: `${title} - AI Kitchen Hub`,
+            title: `${title} - Aether Cooking & Fitness Hub`,
             text: text,
         };
 
@@ -1411,12 +1750,10 @@ const DayJournalSection = ({ log, token, onLogUpdate, date, notesType, title, pl
                 if (err.name !== 'AbortError') {
                     console.error("Share failed:", err);
                     navigator.clipboard.writeText(text);
-                    alert('Journal content copied to clipboard!');
                 }
             }
         } else {
             navigator.clipboard.writeText(text);
-            alert('Journal content copied to clipboard!');
         }
     };
 
@@ -1437,10 +1774,10 @@ const DayJournalSection = ({ log, token, onLogUpdate, date, notesType, title, pl
     );
 };
 
-const EnlargedImageView = ({ imageUrl, onClose }) => {
+const EnlargedImageView = ({ image, onClose, onDelete }) => {
     const handleShareImage = async () => {
         try {
-            const response = await fetch(imageUrl);
+            const response = await fetch(image.url);
             const blob = await response.blob();
             const file = new File([blob], 'photo.jpg', { type: blob.type });
 
@@ -1448,15 +1785,14 @@ const EnlargedImageView = ({ imageUrl, onClose }) => {
                 await navigator.share({
                     files: [file],
                     title: 'My Meal/Workout Photo',
-                    text: 'From my AI Kitchen Hub log.',
+                    text: 'From my Aether Cooking & Fitness Hub log.',
                 });
             } else {
                 throw new Error("File sharing not supported.");
             }
         } catch (err) {
             console.error("Share failed:", err);
-            navigator.clipboard.writeText(imageUrl);
-            alert('Image link copied to clipboard!');
+            navigator.clipboard.writeText(image.url);
         }
     };
 
@@ -1464,20 +1800,29 @@ const EnlargedImageView = ({ imageUrl, onClose }) => {
         <div className="relative">
             <div className="absolute -top-3 -right-3 md:-top-4 md:-right-4 flex gap-2">
                 <button 
-                    onClick={handleShareImage} 
-                    className="text-white bg-black/50 rounded-full p-1.5 hover:bg-black/80 transition-colors z-10"
+                    onClick={() => onDelete(image._id)}
+                    className="text-white bg-red-600/80 rounded-full p-2 hover:bg-red-500 transition-colors z-10"
+                    title="Delete Image"
                 >
-                    <Share2 size={24}/>
+                    <Trash2 size={22}/>
+                </button>
+                <button 
+                    onClick={handleShareImage} 
+                    className="text-white bg-black/50 rounded-full p-2 hover:bg-black/80 transition-colors z-10"
+                    title="Share Image"
+                >
+                    <Share2 size={22}/>
                 </button>
                 <button 
                     onClick={onClose} 
-                    className="text-white bg-black/50 rounded-full p-1.5 hover:bg-black/80 transition-colors z-10"
+                    className="text-white bg-black/50 rounded-full p-2 hover:bg-black/80 transition-colors z-10"
+                    title="Close"
                 >
-                    <X size={24}/>
+                    <X size={22}/>
                 </button>
             </div>
             <img 
-                src={imageUrl} 
+                src={image.url}
                 alt="Enlarged view" 
                 className="max-w-full max-h-[80vh] object-contain rounded-lg shadow-2xl" 
             />
@@ -1486,13 +1831,27 @@ const EnlargedImageView = ({ imageUrl, onClose }) => {
 };
 
 
-const ImageUploadSection = ({ title, log, token, onLogUpdate, date, type, showModal, hideModal }) => {
+const ImageUploadSection = ({ title, log, token, onLogUpdate, date, type, showModal, hideModal, showNotification }) => {
     const [isUploading, setIsUploading] = useState(false);
     const fileInputRef = useRef(null);
     
-    const handleImageClick = (imageUrl) => {
+    const handleDeleteImage = async (imageId) => {
+        if (!log?._id || !imageId) return;
+        if (!window.confirm("Are you sure you want to delete this image?")) return;
+
+        try {
+            const { data: updatedLog } = await api.delete(`/api/logs/image/${log._id}/${imageId}`, authHeader(token));
+            onLogUpdate(updatedLog);
+            hideModal();
+        } catch (error) {
+            console.error("Image delete failed:", error);
+            if (showNotification) showNotification("Failed to delete image.", true);
+        }
+    };
+
+    const handleImageClick = (image) => {
         if (showModal && hideModal) {
-            showModal(<EnlargedImageView imageUrl={imageUrl} onClose={hideModal} />);
+            showModal(<EnlargedImageView image={image} onClose={hideModal} onDelete={handleDeleteImage} />);
         }
     };
 
@@ -1518,6 +1877,7 @@ const ImageUploadSection = ({ title, log, token, onLogUpdate, date, type, showMo
 
         } catch (error) {
             console.error("Image upload failed:", error);
+            if (showNotification) showNotification("Image upload failed.", true);
         } finally {
             setIsUploading(false);
         }
@@ -1534,11 +1894,11 @@ const ImageUploadSection = ({ title, log, token, onLogUpdate, date, type, showMo
             </div>
             <div className="bg-black/20 p-4 rounded-lg min-h-[100px]">
                 <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-3 lg:grid-cols-4 gap-2">
-                    {log?.images?.filter(img => img.type === type).map((image, index) => (
-                        <div key={index} onClick={() => handleImageClick(image.url)} className="cursor-pointer group relative overflow-hidden rounded-md">
+                    {log?.images?.filter(img => img.type === type).map((image) => (
+                        <div key={image._id} onClick={() => handleImageClick(image)} className="cursor-pointer group relative overflow-hidden rounded-md">
                             <img 
                                 src={image.url} 
-                                alt={`${type} log ${index}`} 
+                                alt={`${type} log`} 
                                 className="w-full h-24 object-cover transition-transform duration-300 ease-in-out group-hover:scale-110"
                             />
                              <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -1845,7 +2205,7 @@ const AuthScreen = ({ setToken }) => {
     return (
         <div className="min-h-screen w-full flex justify-center items-center p-4">
             <div className="w-full max-w-md p-8 rounded-2xl shadow-2xl bg-gray-900/50 backdrop-blur-xl border border-white/20">
-                <h1 className="text-4xl font-bold text-center mb-2">Welcome!</h1>
+                <h1 className="text-4xl font-bold text-center mb-2 font-poppins">Welcome to Aether!</h1>
                 <p className="text-center text-gray-300 mb-8">{isSignUp ? 'Create a new account' : 'Sign in to continue'}</p>
                 {error && <Notification message={error} isError={true} />}
                 <form onSubmit={handleSubmit}>
@@ -1866,96 +2226,6 @@ const AuthScreen = ({ setToken }) => {
     );
 };
 
-const RecipeDetailView = ({ recipe, onClose, showNotification, token, isGenerated }) => {
-    const [isSaving, setIsSaving] = useState(false);
-
-    const formatInstructions = (instructions) => {
-        if (instructions) {
-            if (Array.isArray(instructions)) {
-                return instructions.join('\n');
-            }
-            if (typeof instructions === 'string') {
-                return instructions.replace(/\\n/g, '\n');
-            }
-        }
-        return 'Instructions not available.';
-    };
-    
-    const handleSave = async () => {
-        if (!recipe) return;
-        setIsSaving(true);
-        try {
-            await api.post('/api/recipes', recipe, authHeader(token));
-            showNotification('Recipe saved successfully!');
-            onClose();
-        } catch (error) {
-            showNotification("Error: Could not save recipe.", true);
-        } finally {
-            setIsSaving(false);
-        }
-    };
-    
-    const handleCopyToClipboard = (text, type) => {
-        navigator.clipboard.writeText(text).then(() => {
-            showNotification(`${type} copied to clipboard!`);
-        }).catch(err => {
-            console.error('Copy failed: ', err);
-            showNotification(`Failed to copy to clipboard.`, true);
-        });
-    };
-    
-    const getShareableText = () => {
-        const formattedInstructions = formatInstructions(recipe.instructions);
-        return `Check out this recipe: ${recipe.title || 'Untitled Recipe'}\n\nIngredients:\n${(Array.isArray(recipe.ingredients) ? recipe.ingredients.join('\n') : 'Not available')}\n\nInstructions:\n${formattedInstructions}`;
-    };
-
-    const handleShare = async () => {
-        const text = getShareableText();
-        if (navigator.share) {
-            try {
-                await navigator.share({ title: recipe.title, text });
-            } catch (err) {
-                 if (err.name !== 'AbortError') handleCopyToClipboard(text, 'Recipe');
-            }
-        } else {
-            handleCopyToClipboard(text, 'Recipe');
-        }
-    };
-    
-    const handlePrint = () => {
-        const printWindow = window.open('', '_blank');
-        printWindow.document.write(`<html><head><title>${recipe.title || 'Recipe'}</title><style>body{font-family:sans-serif}h3{color:#333}ul,ol{margin-left:20px}</style></head><body>`);
-        printWindow.document.write(`<h3>${recipe.title || 'Untitled Recipe'}</h3><h4>Ingredients</h4><ul>${Array.isArray(recipe.ingredients) ? recipe.ingredients.map(ing => `<li>${ing}</li>`).join('') : ''}</ul><h4>Instructions</h4><p>${formatInstructions(recipe.instructions).replace(/\n/g, '<br>')}</p>`);
-        printWindow.document.write('</body></html>');
-        printWindow.document.close();
-        printWindow.print();
-    };
-
-    return (
-        <div className="bg-black/75 backdrop-blur-xl p-6 md:p-8 rounded-2xl relative max-h-[85vh] overflow-y-auto border border-white/10">
-            <button onClick={onClose} className="absolute top-4 right-4 text-white hover:text-gray-300 z-10"><X size={24}/></button>
-            <h3 className="text-3xl font-bold mb-4 text-green-300">{recipe.title || 'Untitled Recipe'}</h3>
-            <div className="grid md:grid-cols-2 gap-x-8">
-                <div>
-                    <h4 className="text-xl font-semibold mb-2">Ingredients</h4>
-                    <ul className="list-disc list-inside space-y-1 text-gray-200">
-                        {Array.isArray(recipe.ingredients) ? recipe.ingredients.map((ing, i) => <li key={i}>{ing}</li>) : <li>Ingredients not available.</li>}
-                    </ul>
-                </div>
-                <div className="mt-4 md:mt-0">
-                    <h4 className="text-xl font-semibold mb-2">Instructions</h4>
-                    <div className="text-gray-200 whitespace-pre-line leading-relaxed">{formatInstructions(recipe.instructions)}</div>
-                </div>
-            </div>
-            <div className="mt-6 pt-4 border-t border-white/10 flex flex-wrap gap-2 justify-end">
-                {isGenerated && <button onClick={handleSave} disabled={isSaving} className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-colors disabled:bg-gray-500">{isSaving ? 'Saving...' : <><Save size={18}/> Save</>}</button>}
-                <button onClick={handleShare} className="flex items-center gap-2 bg-gray-600/50 hover:bg-gray-600/80 text-white font-bold py-2 px-4 rounded-lg transition-colors"><Share2 size={18}/> Share</button>
-                <ExportMenu getText={getShareableText} getTitle={() => recipe.title || 'Recipe'} />
-                <button onClick={handlePrint} className="flex items-center gap-2 bg-gray-600/50 hover:bg-gray-600/80 text-white font-bold py-2 px-4 rounded-lg transition-colors"><Printer size={18}/> Print</button>
-            </div>
-        </div>
-    );
-};
 
 const ModalWrapper = ({ children, onRequestClose }) => (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex justify-center items-center p-4" onClick={onRequestClose}>
@@ -1999,7 +2269,7 @@ const Notification = ({ message, isError = false }) => (
 const SplashScreen = () => (
     <div className="h-screen w-full flex flex-col justify-center items-center bg-gray-900 text-white">
         <ChefHat className="w-24 h-24 animate-pulse text-green-400" />
-        <h1 className="text-3xl font-bold mt-4">AI Kitchen Hub</h1>
+        <h1 className="text-3xl font-bold mt-4 font-poppins">Aether Cooking & Fitness Hub</h1>
         <p className="mt-2 text-gray-300">Initializing...</p>
     </div>
 );

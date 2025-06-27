@@ -2,12 +2,12 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const userSchema = new Schema({
-    email: { type: String, required: true, unique: true, trim: true, lowercase: true },
+    email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
-    username: { type: String, trim: true, default: 'New User' },
+    username: { type: String, required: true, unique: true },
     allergies: { type: [String], default: [] },
-    foodsToAvoid: { type: [String], default: [] }
+    foodsToAvoid: { type: [String], default: [] },
+    dislikedRecipes: { type: [String], default: [] }
 }, { timestamps: true });
 
-// This safe-export pattern is critical for preventing crashes.
 module.exports = mongoose.models.User || mongoose.model('User', userSchema);
