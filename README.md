@@ -1,4 +1,4 @@
-![Aether Cooking & Fitness Hub Screenshot](https://placehold.co/1200x600/1a1a1a/ffffff?text=Aether+Cooking+%26+Fitness+Hub)
+![Aether Cooking & Fitness Hub Screenshot](./assets/aether-hub-screenshot.jpg)
 
 # Aether Cooking & Fitness Hub
 
@@ -150,4 +150,3 @@ To get Aether Kitchen & Fitness running on your local machine for development an
         Vite will start the development server, and you can access the application at `http://localhost:5173` (or another port if 5173 is busy).
 
 You should now have the full application running locally.
-
