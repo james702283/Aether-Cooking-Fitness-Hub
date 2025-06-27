@@ -2,7 +2,7 @@
 
 ## Overview
 
-Welcome to Aether Kitchen & Fitness, a revolutionary full-stack application designed to transform your culinary and wellness journey. This platform serves as your all-in-one personal assistant, leveraging the power of Artificial Intelligence to cater to your unique dietary needs, preferences, and lifestyle. Whether you're a seasoned chef or a novice in the kitchen, Aether Kitchen & Fitness provides the tools and inspiration you need to explore the world of food and fitness like never before.
+Welcome to Aether Cooking & Fitness, a revolutionary full-stack application designed to transform your culinary and wellness journey. This platform serves as your all-in-one personal assistant, leveraging the power of Artificial Intelligence to cater to your unique dietary needs, preferences, and lifestyle. Whether you're a seasoned chef or a novice in the kitchen, Aether Kitchen & Fitness provides the tools and inspiration you need to explore the world of food and fitness like never before.
 
 Our mission is to empower users to take control of their nutrition and fitness with a seamless, intuitive, and highly personalized experience. From generating creative recipes with ingredients you already have to meticulously tracking your health and fitness progress, Aether Kitchen & Fitness is the ultimate tool for modern living.
 
