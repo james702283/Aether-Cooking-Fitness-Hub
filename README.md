@@ -1,4 +1,4 @@
-# Aether Kitchen & Fitness
+# Aether Cooking & Fitness Hub
 
 ## Overview
 
