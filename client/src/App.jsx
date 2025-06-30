@@ -1,25 +1,41 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
-import { BookOpen, ChefHat, LogOut, X, Share2, FileDown, AlertTriangle, CheckCircle, Save, Trash2, Printer, SlidersHorizontal, ChevronDown, ChevronLeft, ChevronRight, Calendar, Dumbbell, Utensils, BookHeart, Plus, ImagePlus, ThumbsUp, ThumbsDown, Star } from 'lucide-react';
+import { BookOpen, ChefHat, LogOut, X, Share2, FileDown, AlertTriangle, CheckCircle, Save, Trash2, Printer, SlidersHorizontal, ChevronDown, ChevronLeft, ChevronRight, Calendar, Dumbbell, Utensils, BookHeart, Plus, ImagePlus, ThumbsUp, ThumbsDown, Star, Flame, Video } from 'lucide-react';
 
-// --- Suggestion Data for Filters ---
-const CUISINE_SUGGESTIONS = ['Italian', 'Mexican', 'Chinese', 'Indian', 'Japanese', 'Thai', 'French', 'Greek', 'Spanish', 'Korean', 'Vietnamese', 'Mediterranean', 'American', 'BBQ', 'Caribbean'];
-const DIET_SUGGESTIONS = ['Vegan', 'Vegetarian', 'Keto', 'Paleo', 'Gluten-Free', 'Dairy-Free', 'Low-Carb', 'Low-Fat', 'Pescatarian', 'Whole30'];
-const INGREDIENT_SUGGESTIONS = ['Chicken', 'Beef', 'Pork', 'Fish', 'Shrimp', 'Tofu', 'Eggs', 'Rice', 'Pasta', 'Potatoes', 'Quinoa', 'Bread', 'Flour', 'Sugar', 'Salt', 'Pepper', 'Olive Oil', 'Butter', 'Garlic', 'Onion', 'Tomatoes', 'Lettuce', 'Spinach', 'Kale', 'Broccoli', 'Carrots', 'Bell Peppers', 'Mushrooms', 'Avocado', 'Lime', 'Lemon', 'Cilantro', 'Basil', 'Oregano', 'Thyme', 'Rosemary', 'Cumin', 'Coriander', 'Paprika', 'Chili Powder', 'Soy Sauce', 'Worcestershire Sauce', 'Honey', 'Maple Syrup', 'Vinegar', 'Mustard', 'Mayonnaise', 'Ketchup', 'Cheese', 'Cheddar', 'Mozzarella', 'Parmesan', 'Feta', 'Milk', 'Cream', 'Yogurt', 'Beans', 'Lentils', 'Chickpeas', 'Nuts', 'Almonds', 'Walnuts', 'Peanuts', 'Seeds', 'Chia Seeds', 'Flax Seeds', 'Chocolate', 'Vanilla Extract'];
-const COMMON_FOODS = ['Apple', 'Banana', 'Orange', 'Chicken Breast', 'Salmon Fillet', 'Brown Rice', 'White Rice', 'Oats', 'Almond Milk', 'Whole Milk', 'Greek Yogurt', 'Protein Shake', 'Salad', 'Sandwich', 'Pizza Slice', 'Burger'];
+// --- EXPANDED: Suggestion Data for Filters ---
+const CUISINE_SUGGESTIONS = ['Italian', 'Mexican', 'Chinese', 'Indian', 'Japanese', 'Thai', 'French', 'Greek', 'Spanish', 'Korean', 'Vietnamese', 'Mediterranean', 'American', 'BBQ', 'Caribbean', 'German', 'Russian', 'Brazilian', 'Ethiopian', 'Moroccan'];
+const DIET_SUGGESTIONS = ['Vegan', 'Vegetarian', 'Keto', 'Paleo', 'Gluten-Free', 'Dairy-Free', 'Low-Carb', 'Low-Fat', 'Pescatarian', 'Whole30', 'Flexitarian', 'Low-FODMAP', 'Atkins'];
+const INGREDIENT_SUGGESTIONS = ['Chicken Breast', 'Ground Beef', 'Pork Tenderloin', 'Salmon Fillet', 'Cod', 'Shrimp', 'Tofu', 'Tempeh', 'Eggs', 'Brown Rice', 'Quinoa', 'Whole Wheat Pasta', 'Potatoes', 'Sweet Potatoes', 'Lentils', 'Chickpeas', 'Black Beans', 'Bread', 'Flour', 'Sugar', 'Salt', 'Black Pepper', 'Olive Oil', 'Coconut Oil', 'Butter', 'Garlic', 'Onion', 'Ginger', 'Turmeric', 'Tomatoes', 'Cucumber', 'Lettuce', 'Spinach', 'Kale', 'Arugula', 'Broccoli', 'Cauliflower', 'Carrots', 'Bell Peppers', 'Mushrooms', 'Zucchini', 'Eggplant', 'Avocado', 'Lime', 'Lemon', 'Cilantro', 'Parsley', 'Basil', 'Oregano', 'Thyme', 'Rosemary', 'Cumin', 'Coriander', 'Paprika', 'Chili Powder', 'Cayenne Pepper', 'Soy Sauce', 'Tamari', 'Worcestershire Sauce', 'Balsamic Vinegar', 'Apple Cider Vinegar', 'Honey', 'Maple Syrup', 'Mustard', 'Mayonnaise', 'Ketchup', 'Greek Yogurt', 'Cheddar Cheese', 'Mozzarella', 'Parmesan', 'Feta', 'Goat Cheese', 'Milk', 'Almond Milk', 'Oat Milk', 'Heavy Cream', 'Nuts', 'Almonds', 'Walnuts', 'Pecans', 'Peanuts', 'Seeds', 'Chia Seeds', 'Flax Seeds', 'Hemp Seeds', 'Pumpkin Seeds', 'Dark Chocolate', 'Cocoa Powder', 'Vanilla Extract'];
+const COMMON_FOODS = ['Apple', 'Banana', 'Orange', 'Strawberries', 'Blueberries', 'Chicken Breast', 'Salmon Fillet', 'Tuna Can', 'Ground Turkey', 'Brown Rice', 'White Rice', 'Oats', 'Rolled Oats', 'Almond Milk', 'Whole Milk', 'Greek Yogurt', 'Cottage Cheese', 'Protein Shake', 'Protein Bar', 'Green Salad', 'Caesar Salad', 'Turkey Sandwich', 'Cheese Pizza Slice', 'Beef Burger', 'Scrambled Eggs', 'Hard Boiled Egg', 'Avocado Toast'];
 const COMMON_WORKOUTS = {
     'Running': ['duration', 'distance'],
     'Cycling': ['duration', 'distance'],
     'Walking': ['duration', 'distance'],
-    'Swimming': ['duration'],
+    'Swimming': ['duration', 'laps'],
     'Weightlifting': ['sets', 'reps', 'weight'],
     'Bench Press': ['sets', 'reps', 'weight'],
-    'Squats': ['sets', 'reps', 'weight'],
+    'Barbell Squats': ['sets', 'reps', 'weight'],
     'Deadlifts': ['sets', 'reps', 'weight'],
+    'Overhead Press': ['sets', 'reps', 'weight'],
+    'Bicep Curls': ['sets', 'reps', 'weight'],
+    'Tricep Pushdowns': ['sets', 'reps', 'weight'],
+    'Lat Pulldowns': ['sets', 'reps', 'weight'],
+    'Dumbbell Rows': ['sets', 'reps', 'weight'],
+    'Push-ups': ['sets', 'reps'],
+    'Pull-ups': ['sets', 'reps'],
+    'Sit-ups': ['sets', 'reps'],
+    'Plank': ['duration'],
     'Yoga': ['duration'],
-    'HIIT': ['duration'],
-    'Jumping Rope': ['duration']
+    'HIIT Session': ['duration', 'rounds'],
+    'Jumping Rope': ['duration'],
+    'Kettlebell Swings': ['sets', 'reps', 'weight'],
+    'Lunges': ['sets', 'reps', 'weight'],
 };
+const BODY_PART_SUGGESTIONS = ['Chest', 'Back', 'Legs', 'Shoulders', 'Biceps', 'Triceps', 'Abs', 'Core', 'Glutes', 'Hamstrings', 'Quads', 'Calves', 'Forearms', 'Traps', 'Lats', 'Full Body', 'Upper Body', 'Lower Body', 'Cardio'];
+const WORKOUT_EQUIPMENT_SUGGESTIONS = ['Dumbbells', 'Barbell', 'Kettlebell', 'Resistance Bands', 'Pull-up Bar', 'Bench', 'Treadmill', 'Stationary Bike', 'Elliptical', 'Rowing Machine', 'Cable Machine', 'Leg Press Machine', 'Squat Rack', 'Medicine Ball', 'Yoga Mat', 'Bodyweight', 'Free Weights'];
+const WORKOUT_DIFFICULTY_OPTIONS = ['Any', 'Easy', 'Medium', 'Hard'];
+const WORKOUT_LENGTH_OPTIONS = ['Any', '15 mins', '30 mins', '45 mins', '60 mins', '75 mins', '90 mins+'];
+
 
 // --- API instance ---
 const api = axios.create({
@@ -105,7 +121,6 @@ export default function App() {
 
     return (
         <div className="font-sans text-white bg-cover bg-center bg-fixed" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1556911220-e15b29be8c8f?q=80&w=2070&auto=format&fit=crop')" }}>
-            {/* --- NEW: Font Import --- */}
             <style>
                 {`
                     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
@@ -141,7 +156,8 @@ const MainContent = ({ token, userId, showModal, hideModal, onProfileUpdate }) =
             <TabNav activeTab={activeTab} setActiveTab={setActiveTab} />
             <div className="mt-4">
                 {activeTab === 'generator' && <RecipeGeneratorTab {...tabProps} />}
-                {activeTab === 'saved' && <SavedRecipesTab {...tabProps} />}
+                {activeTab === 'workout-finder' && <WorkoutFinderTab {...tabProps} />}
+                {activeTab === 'favorites' && <SavedFavoritesTab {...tabProps} />}
                 {activeTab === 'meal' && <MealLogTab {...tabProps} />}
                 {activeTab === 'workout' && <WorkoutLogTab {...tabProps} />}
                 {activeTab === 'calendar' && <CalendarTab {...tabProps} />}
@@ -151,35 +167,48 @@ const MainContent = ({ token, userId, showModal, hideModal, onProfileUpdate }) =
     );
 };
 
-// --- UPDATED: Navigation Order ---
+// --- UPDATED: Navigation with Combined Favorites Tab ---
 const TabNav = ({ activeTab, setActiveTab }) => {
     const tabs = [
         { id: 'generator', label: 'AI Recipes', icon: ChefHat },
+        { id: 'workout-finder', label: 'AI Workouts', icon: Flame },
         { id: 'meal', label: 'Meal Log', icon: Utensils },
         { id: 'workout', label: 'Workout Log', icon: Dumbbell },
         { id: 'calendar', label: 'Calendar', icon: Calendar },
-        { id: 'saved', label: 'Saved Recipes', icon: BookOpen },
+        { id: 'favorites', label: 'Favorites', icon: BookHeart },
         { id: 'settings', label: 'Settings', icon: SlidersHorizontal },
     ];
     return (
-        <nav className="flex justify-center items-center space-x-1 md:space-x-2 bg-gray-900/50 backdrop-blur-md p-2 rounded-xl border border-white/10">
-            {tabs.map(tab => (
-                <button 
-                    key={tab.id} 
-                    onClick={() => setActiveTab(tab.id)} 
-                    className={`flex items-center space-x-2 px-2 md:px-3 py-2 rounded-lg transition-all duration-300 w-full justify-center text-xs md:text-sm ${activeTab === tab.id ? 'bg-green-500/30 text-green-300' : 'text-gray-300 hover:bg-white/10'}`}
-                >
-                    <tab.icon className="w-5 h-5" />
-                    <span className="hidden lg:inline">{tab.label}</span>
-                </button>
-            ))}
+        <nav className="flex flex-wrap justify-center items-center space-x-1 md:space-x-2 bg-gray-900/50 backdrop-blur-md p-2 rounded-xl border border-white/10">
+            {tabs.map(tab => {
+                 let themeClass = '';
+                 if (activeTab === tab.id) {
+                     if (tab.id.includes('workout') || tab.id.includes('finder') || tab.id === 'favorites') {
+                         themeClass = 'bg-red-500/30 text-red-300';
+                     } else {
+                         themeClass = 'bg-green-500/30 text-green-300';
+                     }
+                 } else {
+                    themeClass = 'text-gray-300 hover:bg-white/10';
+                 }
+
+                return (
+                    <button 
+                        key={tab.id} 
+                        onClick={() => setActiveTab(tab.id)} 
+                        className={`flex items-center space-x-2 px-2 md:px-3 py-2 rounded-lg transition-all duration-300 flex-grow justify-center text-xs md:text-sm ${themeClass}`}
+                    >
+                        <tab.icon className="w-5 h-5" />
+                        <span className="hidden lg:inline">{tab.label}</span>
+                    </button>
+                )
+            })}
         </nav>
     );
 };
 
 // --- Page-level Components ---
 
-// --- UPDATED: Header Branding ---
 const Header = ({ userEmail, username, handleSignOut }) => (
     <header className="p-4 bg-black/20 backdrop-blur-md border-b border-white/10 sticky top-0 z-30">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
@@ -199,10 +228,17 @@ const Header = ({ userEmail, username, handleSignOut }) => (
     </header>
 );
 
-const IngredientTagInput = ({ selectedTags, onTagsChange, suggestionSource }) => {
+const IngredientTagInput = ({ selectedTags, onTagsChange, suggestionSource, themeColor = 'green' }) => {
     const [inputValue, setInputValue] = useState('');
     const [suggestions, setSuggestions] = useState([]);
     const wrapperRef = useRef(null);
+
+    const colorClasses = {
+        green: { bg: 'bg-green-500/80', border: 'focus-within:border-green-400', suggestionBg: 'bg-green-900/95', suggestionHover: 'hover:bg-green-700/80' },
+        red: { bg: 'bg-red-500/80', border: 'focus-within:border-red-400', suggestionBg: 'bg-red-900/95', suggestionHover: 'hover:bg-red-700/80' }
+    };
+    const theme = colorClasses[themeColor] || colorClasses.green;
+
 
     useEffect(() => {
         function handleClickOutside(event) {
@@ -253,9 +289,9 @@ const IngredientTagInput = ({ selectedTags, onTagsChange, suggestionSource }) =>
 
     return (
         <div ref={wrapperRef} className="relative">
-            <div className="w-full min-h-[8rem] bg-black/30 p-3 rounded-lg border border-transparent focus-within:border-green-400 flex flex-wrap gap-2 items-start content-start">
+            <div className={`w-full min-h-[8rem] bg-black/30 p-3 rounded-lg border border-transparent ${theme.border} flex flex-wrap gap-2 items-start content-start`}>
                 {selectedTags.map((tag, index) => (
-                    <div key={index} className="bg-green-500/80 rounded-full px-3 py-1.5 flex items-center gap-2 text-sm font-medium">
+                    <div key={index} className={`${theme.bg} rounded-full px-3 py-1.5 flex items-center gap-2 text-sm font-medium`}>
                         <span>{tag}</span>
                         <button onClick={() => removeTag(tag)} className="text-white hover:bg-black/20 rounded-full p-0.5"><X size={16}/></button>
                     </div>
@@ -265,14 +301,14 @@ const IngredientTagInput = ({ selectedTags, onTagsChange, suggestionSource }) =>
                     value={inputValue}
                     onChange={handleInputChange}
                     onKeyDown={handleKeyDown}
-                    placeholder="Add ingredients..."
+                    placeholder="Add items..."
                     className="flex-grow bg-transparent p-1.5 focus:outline-none min-w-[120px]"
                 />
             </div>
             {suggestions.length > 0 && (
-                <div className="absolute z-10 w-full mt-2 bg-green-900/95 backdrop-blur-md border border-white/10 rounded-lg shadow-lg">
+                <div className={`absolute z-10 w-full mt-2 ${theme.suggestionBg} backdrop-blur-md border border-white/10 rounded-lg shadow-lg`}>
                     {suggestions.map((s, i) => (
-                        <div key={i} onClick={() => addTag(s)} className="p-3 hover:bg-green-700/80 cursor-pointer text-sm">
+                        <div key={i} onClick={() => addTag(s)} className={`p-3 ${theme.suggestionHover} cursor-pointer text-sm`}>
                             {s}
                         </div>
                     ))}
@@ -283,10 +319,26 @@ const IngredientTagInput = ({ selectedTags, onTagsChange, suggestionSource }) =>
 };
 
 
-const FilterTagInput = ({ title, placeholder, selectedTags, onTagsChange, suggestionSource }) => {
+const FilterTagInput = ({ title, placeholder, selectedTags, onTagsChange, suggestionSource, themeColor = 'green' }) => {
     const [inputValue, setInputValue] = useState('');
     const [suggestions, setSuggestions] = useState([]);
     const wrapperRef = useRef(null);
+
+    const colorClasses = {
+        green: {
+            bg: 'bg-green-500/80',
+            border: 'focus-within:border-green-400',
+            suggestionBg: 'bg-green-900/95',
+            suggestionHover: 'hover:bg-green-700/80'
+        },
+        red: {
+            bg: 'bg-red-500/80',
+            border: 'focus-within:border-red-400',
+            suggestionBg: 'bg-red-900/95',
+            suggestionHover: 'hover:bg-red-700/80'
+        }
+    };
+    const theme = colorClasses[themeColor] || colorClasses.green;
 
     useEffect(() => {
         function handleClickOutside(event) {
@@ -335,10 +387,10 @@ const FilterTagInput = ({ title, placeholder, selectedTags, onTagsChange, sugges
     return (
         <div ref={wrapperRef}>
             <label className="block text-sm font-medium text-gray-300 mb-1">{title}</label>
-            <div className="relative bg-black/30 p-2 rounded-lg border border-transparent focus-within:border-green-400">
+            <div className={`relative bg-black/30 p-2 rounded-lg border border-transparent ${theme.border}`}>
                 <div className="flex flex-wrap gap-2 min-h-[24px]">
                     {selectedTags.map((tag, index) => (
-                        <div key={index} className="bg-green-500/80 rounded-full px-2.5 py-0.5 flex items-center gap-1.5 text-xs">
+                        <div key={index} className={`${theme.bg} rounded-full px-2.5 py-0.5 flex items-center gap-1.5 text-xs`}>
                             <span>{tag}</span>
                             <button onClick={() => removeTag(tag)} className="text-white hover:bg-black/20 rounded-full"><X size={14}/></button>
                         </div>
@@ -353,9 +405,9 @@ const FilterTagInput = ({ title, placeholder, selectedTags, onTagsChange, sugges
                     />
                 </div>
                  {suggestions.length > 0 && (
-                    <div className="absolute z-10 w-full mt-2 bg-green-900/95 backdrop-blur-md border border-white/10 rounded-lg shadow-lg">
+                    <div className={`absolute z-10 w-full mt-2 ${theme.suggestionBg} backdrop-blur-md border border-white/10 rounded-lg shadow-lg`}>
                         {suggestions.map((s, i) => (
-                            <div key={i} onClick={() => addTag(s)} className="p-2 hover:bg-green-700/80 cursor-pointer text-sm">
+                            <div key={i} onClick={() => addTag(s)} className={`p-2 ${theme.suggestionHover} cursor-pointer text-sm`}>
                                 {s}
                             </div>
                         ))}
@@ -366,9 +418,24 @@ const FilterTagInput = ({ title, placeholder, selectedTags, onTagsChange, sugges
     );
 };
 
-const CustomSelect = ({ label, value, onChange, options }) => {
+const CustomSelect = ({ label, value, onChange, options, themeColor = 'green' }) => {
     const [isOpen, setIsOpen] = useState(false);
     const wrapperRef = useRef(null);
+
+    const colorClasses = {
+        green: {
+            border: 'focus:border-green-400',
+            text: 'text-green-300',
+            bgHover: 'hover:bg-green-500/30'
+        },
+        red: {
+            border: 'focus:border-red-400',
+            text: 'text-red-300',
+            bgHover: 'hover:bg-red-500/30'
+        }
+    };
+    const theme = colorClasses[themeColor] || colorClasses.green;
+
 
     const handleOptionClick = (option) => {
         onChange(option);
@@ -391,7 +458,7 @@ const CustomSelect = ({ label, value, onChange, options }) => {
             <button
                 type="button"
                 onClick={() => setIsOpen(!isOpen)}
-                className="w-full bg-black/30 p-3 rounded-lg border border-transparent focus:border-green-400 focus:outline-none flex justify-between items-center text-left"
+                className={`w-full bg-black/30 p-3 rounded-lg border border-transparent ${theme.border} focus:outline-none flex justify-between items-center text-left`}
             >
                 <span>{value}</span>
                 <ChevronDown size={20} className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
@@ -403,7 +470,7 @@ const CustomSelect = ({ label, value, onChange, options }) => {
                         <div
                             key={option}
                             onClick={() => handleOptionClick(option)}
-                            className={`p-3 cursor-pointer hover:bg-green-500/30 ${option === value ? 'text-green-300 font-bold' : ''}`}
+                            className={`p-3 cursor-pointer ${theme.bgHover} ${option === value ? `${theme.text} font-bold` : ''}`}
                         >
                             {option}
                         </div>
@@ -440,20 +507,21 @@ const StarRating = ({ rating, onRatingChange, disabled = false }) => {
     );
 };
 
-const CommentSection = ({ recipeId, initialComments, token, userId, onCommentsUpdate }) => {
+const CommentSection = ({ itemType, itemId, initialComments, token, userId, onCommentsUpdate }) => {
     const [comments, setComments] = useState(initialComments || []);
     const [newComment, setNewComment] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleCommentSubmit = async (e) => {
         e.preventDefault();
-        if (!newComment.trim()) return;
+        if (!newComment.trim() || !itemId) return;
 
         setIsSubmitting(true);
         try {
-            const { data } = await api.post(`/api/recipes/${recipeId}/comment`, { commentText: newComment }, authHeader(token));
-            setComments(data.comments);
-            if (onCommentsUpdate) onCommentsUpdate(data.comments);
+            const { data } = await api.post(`/api/${itemType}/${itemId}/comment`, { commentText: newComment }, authHeader(token));
+            const updatedItem = data;
+            setComments(updatedItem.comments);
+            if (onCommentsUpdate) onCommentsUpdate(updatedItem.comments);
             setNewComment("");
         } catch (error) {
             console.error("Failed to post comment", error);
@@ -464,14 +532,16 @@ const CommentSection = ({ recipeId, initialComments, token, userId, onCommentsUp
 
     const handleDeleteComment = async (commentId) => {
         try {
-            await api.delete(`/api/recipes/${recipeId}/comment/${commentId}`, authHeader(token));
-            const updatedComments = comments.filter(c => c._id !== commentId);
-            setComments(updatedComments);
-            if (onCommentsUpdate) onCommentsUpdate(updatedComments);
+            const { data } = await api.delete(`/api/${itemType}/${itemId}/comment/${commentId}`, authHeader(token));
+            const updatedItem = data;
+            setComments(updatedItem.comments);
+            if (onCommentsUpdate) onCommentsUpdate(updatedItem.comments);
         } catch (error) {
             console.error("Failed to delete comment", error);
         }
     };
+
+    const themeColor = itemType === 'workouts' ? 'red' : 'green';
 
     return (
         <div className="mt-6">
@@ -482,11 +552,11 @@ const CommentSection = ({ recipeId, initialComments, token, userId, onCommentsUp
                     onChange={(e) => setNewComment(e.target.value)}
                     placeholder="Add a public comment..."
                     rows="3"
-                    className="w-full bg-black/30 p-3 rounded-lg border border-transparent focus:border-green-400 focus:outline-none resize-none"
+                    className={`w-full bg-black/30 p-3 rounded-lg border border-transparent focus:border-${themeColor}-400 focus:outline-none resize-none`}
                     disabled={isSubmitting}
                 />
                 <div className="flex justify-end mt-2">
-                    <button type="submit" disabled={isSubmitting || !newComment.trim()} className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-colors disabled:bg-gray-500">
+                    <button type="submit" disabled={isSubmitting || !newComment.trim()} className={`bg-${themeColor}-600 hover:bg-${themeColor}-700 text-white font-bold py-2 px-4 rounded-lg transition-colors disabled:bg-gray-500`}>
                         {isSubmitting ? 'Posting...' : 'Post Comment'}
                     </button>
                 </div>
@@ -496,20 +566,20 @@ const CommentSection = ({ recipeId, initialComments, token, userId, onCommentsUp
                 {comments.length > 0 ? (
                     comments.slice().reverse().map((comment) => (
                         <div key={comment._id} className="bg-black/20 p-3 rounded-lg flex gap-3">
-                            <div className="flex-shrink-0 w-10 h-10 bg-green-800 rounded-full flex items-center justify-center font-bold">
+                            <div className={`flex-shrink-0 w-10 h-10 bg-${themeColor}-800 rounded-full flex items-center justify-center font-bold`}>
                                 {comment.username.charAt(0).toUpperCase()}
                             </div>
                             <div className="flex-grow">
                                 <div className="flex justify-between items-center">
-                                    <span className="font-bold text-green-300">{comment.username}</span>
-                                    {comment.userId === userId && (
+                                    <span className={`font-bold text-${themeColor}-300`}>{comment.username}</span>
+                                    {comment.user === userId && (
                                         <button onClick={() => handleDeleteComment(comment._id)} className="text-red-400 hover:text-red-300 p-1 rounded-full hover:bg-red-500/20">
                                             <Trash2 size={16} />
                                         </button>
                                     )}
                                 </div>
                                 <span className="text-xs text-gray-400">{new Date(comment.createdAt).toLocaleString()}</span>
-                                <p className="text-gray-200 mt-1">{comment.commentText}</p>
+                                <p className="text-gray-200 mt-1">{comment.comment}</p>
                             </div>
                         </div>
                     ))
@@ -540,8 +610,9 @@ const RecipeGeneratorTab = ({ token, showModal, hideModal, userId }) => {
     };
     
     const handleGenerate = async () => {
-        if (ingredients.length === 0) {
-            setError('Please enter some ingredients.');
+        const hasFilters = cuisines.length > 0 || diets.length > 0 || budget || calories;
+        if (ingredients.length === 0 && !hasFilters) {
+            setError('Please enter some ingredients or apply a filter.');
             return;
         }
         setIsLoading(true);
@@ -562,7 +633,6 @@ const RecipeGeneratorTab = ({ token, showModal, hideModal, userId }) => {
             showNotification(errorMessage, true);
         } finally {
             setIsLoading(false);
-            setIngredients([]); 
         }
     };
     
@@ -584,13 +654,14 @@ const RecipeGeneratorTab = ({ token, showModal, hideModal, userId }) => {
             {notification && <Notification message={notification} />}
             {error && <Notification message={error} isError={true} />}
             <h2 className="text-3xl font-bold mb-4">AI Recipe Generator</h2>
-            <p className="text-gray-300 mb-6">Enter ingredients you have, then add filters for cuisine, diet, or budget to get customized recipe ideas.</p>
+            <p className="text-gray-300 mb-6">Enter ingredients you have, or just use filters to get creative ideas.</p>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <IngredientTagInput
                     selectedTags={ingredients}
                     onTagsChange={setIngredients}
                     suggestionSource={INGREDIENT_SUGGESTIONS}
+                    themeColor="green"
                 />
                 <div className="flex flex-col gap-2">
                      <button 
@@ -619,6 +690,7 @@ const RecipeGeneratorTab = ({ token, showModal, hideModal, userId }) => {
                             selectedTags={cuisines}
                             onTagsChange={setCuisines}
                             suggestionSource={CUISINE_SUGGESTIONS}
+                            themeColor="green"
                         />
                         <FilterTagInput 
                             title="Diets"
@@ -626,6 +698,7 @@ const RecipeGeneratorTab = ({ token, showModal, hideModal, userId }) => {
                             selectedTags={diets}
                             onTagsChange={setDiets}
                             suggestionSource={DIET_SUGGESTIONS}
+                            themeColor="green"
                         />
                          <div>
                             <label className="block text-sm font-medium text-gray-300 mb-1">Budget for extra items ($)</label>
@@ -668,8 +741,166 @@ const RecipeGeneratorTab = ({ token, showModal, hideModal, userId }) => {
     );
 };
 
-const SavedRecipesTab = ({ token, userId, showModal, hideModal }) => {
+const WorkoutFinderTab = ({ token, showModal, hideModal, userId }) => {
+    const [targetBodyParts, setTargetBodyParts] = useState([]);
+    const [generatedWorkouts, setGeneratedWorkouts] = useState([]);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState('');
+    const [notification, setNotification] = useState('');
+    const [showFilters, setShowFilters] = useState(false);
+    const [equipment, setEquipment] = useState([]);
+    const [difficulty, setDifficulty] = useState('Any');
+    const [workoutLength, setWorkoutLength] = useState('Any');
+    const [useFreeWeights, setUseFreeWeights] = useState(false);
+    const [freeWeightAmount, setFreeWeightAmount] = useState('');
+
+    const showNotification = (message, isError = false) => {
+        if(isError) setError(message); else setNotification(message);
+        setTimeout(() => { setError(''); setNotification(''); }, 3000);
+    };
+    
+    const handleGenerate = async () => {
+        const hasFilters = equipment.length > 0 || difficulty !== 'Any' || workoutLength !== 'Any' || useFreeWeights;
+        if (targetBodyParts.length === 0 && !hasFilters) {
+            setError('Please enter a target body part or apply a filter.');
+            return;
+        }
+        setIsLoading(true);
+        setError('');
+        setGeneratedWorkouts([]);
+        try {
+            const payload = {
+                targetBodyParts: targetBodyParts.join(','),
+                equipment: equipment.join(','),
+                difficulty: difficulty === 'Any' ? '' : difficulty,
+                workoutLength: workoutLength === 'Any' ? '' : workoutLength,
+                useFreeWeights,
+                freeWeightAmount,
+            };
+            const response = await api.post('/api/workouts/generate', payload, authHeader(token));
+            setGeneratedWorkouts(response.data);
+        } catch (err) {
+            const errorMessage = err.response?.data?.message || "Error generating workouts. The AI might be busy.";
+            showNotification(errorMessage, true);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+    
+    const handleSelectWorkout = (workout) => {
+        showModal(
+            <WorkoutDetailView 
+                workout={workout} 
+                onClose={hideModal} 
+                showNotification={showNotification} 
+                token={token} 
+                userId={userId}
+                isGenerated={true}
+            />
+        );
+    };
+
+    return (
+        <div className="bg-gray-900/50 backdrop-blur-md p-6 rounded-2xl border border-white/10">
+            {notification && <Notification message={notification} isError={false} />}
+            {error && <Notification message={error} isError={true} />}
+            <h2 className="text-3xl font-bold mb-4">AI Workout Finder</h2>
+            <p className="text-gray-300 mb-6">Enter body parts you want to train, or just use filters to find the perfect workout.</p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <IngredientTagInput
+                    selectedTags={targetBodyParts}
+                    onTagsChange={setTargetBodyParts}
+                    suggestionSource={BODY_PART_SUGGESTIONS}
+                    themeColor="red"
+                />
+                <div className="flex flex-col gap-2">
+                     <button 
+                        onClick={handleGenerate} 
+                        disabled={isLoading} 
+                        className="bg-red-500 hover:bg-red-600 p-4 rounded-lg font-bold transition-colors disabled:bg-gray-500 w-full flex-grow flex justify-center items-center"
+                    >
+                         {isLoading ? <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div> : 'Find Workouts'}
+                    </button>
+                    <button 
+                        onClick={() => setShowFilters(!showFilters)} 
+                        className="flex items-center justify-center gap-2 bg-gray-500/30 hover:bg-gray-500/50 p-2 rounded-lg text-sm transition-colors"
+                    >
+                        <SlidersHorizontal size={16} />
+                        <span>{showFilters ? 'Hide' : 'Show'} Filters</span>
+                    </button>
+                </div>
+            </div>
+
+            {showFilters && (
+                 <div className="mt-4 p-4 bg-black/20 rounded-lg border border-white/10">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <FilterTagInput 
+                            title="Available Equipment"
+                            placeholder="Add equipment..."
+                            selectedTags={equipment}
+                            onTagsChange={setEquipment}
+                            suggestionSource={WORKOUT_EQUIPMENT_SUGGESTIONS}
+                            themeColor="red"
+                        />
+                        <CustomSelect
+                            label="Workout Length"
+                            value={workoutLength}
+                            onChange={setWorkoutLength}
+                            options={WORKOUT_LENGTH_OPTIONS}
+                            themeColor="red"
+                        />
+                         <CustomSelect
+                            label="Difficulty"
+                            value={difficulty}
+                            onChange={setDifficulty}
+                            options={WORKOUT_DIFFICULTY_OPTIONS}
+                            themeColor="red"
+                        />
+                         <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-2">Using Free Weights?</label>
+                            <div className="flex items-center gap-4">
+                               <label className="flex items-center gap-2 cursor-pointer">
+                                  <input type="radio" name="freeWeights" checked={!useFreeWeights} onChange={() => setUseFreeWeights(false)} className="form-radio bg-black/30 border-gray-500 text-red-500 focus:ring-red-500" /> No
+                                </label>
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                   <input type="radio" name="freeWeights" checked={useFreeWeights} onChange={() => setUseFreeWeights(true)} className="form-radio bg-black/30 border-gray-500 text-red-500 focus:ring-red-500"/> Yes
+                                </label>
+                            </div>
+                            {useFreeWeights && (
+                                <input
+                                    type="text"
+                                    value={freeWeightAmount}
+                                    onChange={(e) => setFreeWeightAmount(e.target.value)}
+                                    placeholder="e.g., 25 lbs or 10 kg"
+                                    className="w-full mt-2 bg-black/30 p-2 rounded-lg border border-transparent focus:border-red-400 focus:outline-none"
+                                />
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
+           
+            {generatedWorkouts.length > 0 && (
+                <div className="mt-8">
+                    <h3 className="text-2xl font-bold mb-4">Workout Ideas</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                        {generatedWorkouts.map((workout, index) => (
+                            <div key={index} onClick={() => handleSelectWorkout(workout)} className="bg-black/20 p-4 rounded-xl cursor-pointer hover:bg-red-500/20 transition-all transform hover:scale-105">
+                                <h4 className="font-bold text-lg text-red-300">{workout.title || 'Untitled Workout'}</h4>
+                                <p className="text-sm text-gray-400 line-clamp-3 mt-1">{Array.isArray(workout.targetMuscles) ? workout.targetMuscles.join(', ') : ''}</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
+const SavedFavoritesTab = ({ token, userId, showModal, hideModal }) => {
     const [recipes, setRecipes] = useState([]);
+    const [workouts, setWorkouts] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [notification, setNotification] = useState('');
 
@@ -678,25 +909,36 @@ const SavedRecipesTab = ({ token, userId, showModal, hideModal }) => {
         setTimeout(() => setNotification(''), 3000);
     };
 
-    const fetchRecipes = useCallback(async () => {
+    const fetchData = useCallback(async () => {
         setIsLoading(true);
         try {
-            const response = await api.get('/api/recipes', authHeader(token));
-            setRecipes(response.data);
+            const [recipesRes, workoutsRes] = await Promise.all([
+                api.get('/api/recipes', authHeader(token)),
+                api.get('/api/workouts', authHeader(token))
+            ]);
+            setRecipes(recipesRes.data);
+            setWorkouts(workoutsRes.data);
         } catch (error) {
-            console.error("Error fetching recipes:", error);
+            console.error("Error fetching favorites:", error);
+            showNotification('Could not load your favorites.', true);
         } finally {
             setIsLoading(false);
         }
     }, [token]);
 
     useEffect(() => {
-        fetchRecipes();
-    }, [fetchRecipes]);
+        fetchData();
+    }, [fetchData]);
 
     const handleRecipeUpdate = useCallback((updatedRecipe) => {
         setRecipes(currentRecipes => 
             currentRecipes.map(r => r._id === updatedRecipe._id ? updatedRecipe : r)
+        );
+    }, []);
+
+    const handleWorkoutUpdate = useCallback((updatedWorkout) => {
+        setWorkouts(currentWorkouts =>
+            currentWorkouts.map(w => w._id === updatedWorkout._id ? updatedWorkout : w)
         );
     }, []);
 
@@ -709,32 +951,63 @@ const SavedRecipesTab = ({ token, userId, showModal, hideModal }) => {
                 token={token}
                 userId={userId}
                 isGenerated={false}
-                onRecipeUpdate={handleRecipeUpdate}
+                onUpdate={handleRecipeUpdate}
+                onSave={fetchData} 
             />
         );
     };
 
-    const handleDeleteClick = (recipe) => {
+     const handleSelectWorkout = (workout) => {
         showModal(
-            <ConfirmModal
-                title="Delete Recipe"
-                message={`Are you sure you want to permanently delete "${recipe.title}"?`}
-                onConfirm={() => handleDeleteRecipe(recipe._id)}
-                onCancel={hideModal}
+            <WorkoutDetailView
+                workout={workout}
+                onClose={hideModal}
+                showNotification={showNotification}
+                token={token}
+                userId={userId}
+                isGenerated={false}
+                onUpdate={handleWorkoutUpdate}
+                onSave={fetchData}
+            />
+        );
+    };
+    
+    // --- Pass fetchData to detail views when generating new items ---
+    const handleSelectGeneratedRecipe = (recipe) => {
+        showModal(
+            <RecipeDetailView 
+                recipe={recipe} 
+                onClose={hideModal} 
+                showNotification={showNotification} 
+                token={token} 
+                userId={userId}
+                isGenerated={true}
+                onSave={fetchData} 
+            />
+        );
+    };
+     const handleSelectGeneratedWorkout = (workout) => {
+        showModal(
+            <WorkoutDetailView
+                workout={workout}
+                onClose={hideModal}
+                showNotification={showNotification}
+                token={token}
+                userId={userId}
+                isGenerated={true}
+                onSave={fetchData}
             />
         );
     };
 
-    const handleDeleteRecipe = async (recipeId) => {
+    const handleDelete = async (itemType, itemId) => {
+       if (!window.confirm(`Are you sure you want to delete this ${itemType.slice(0, -1)}?`)) return;
         try {
-            await api.delete(`/api/recipes/${recipeId}`, authHeader(token));
-            showNotification("Recipe deleted!");
-            setRecipes(prevRecipes => prevRecipes.filter(r => r._id !== recipeId));
+            await api.delete(`/api/${itemType}/${itemId}`, authHeader(token));
+            showNotification(`${itemType.slice(0, -1)} deleted!`);
+            fetchData(); // Refetch all data after deletion
         } catch (error) {
-            showNotification("Error: Could not delete recipe.", true);
-            console.error("Error deleting recipe:", error);
-        } finally {
-            hideModal();
+            showNotification(`Error: Could not delete ${itemType.slice(0, -1)}.`, true);
         }
     };
     
@@ -748,24 +1021,59 @@ const SavedRecipesTab = ({ token, userId, showModal, hideModal }) => {
     };
 
     if (isLoading) {
-        return <div className="bg-gray-900/50 backdrop-blur-md p-6 rounded-2xl flex justify-center items-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div></div>;
+        return <div className="bg-gray-900/50 backdrop-blur-md p-6 rounded-2xl flex justify-center items-center h-96"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div></div>;
     }
 
     return (
-        <div className="bg-gray-900/50 backdrop-blur-md p-6 rounded-2xl border border-white/10">
+        <div className="bg-gray-900/50 backdrop-blur-md p-6 rounded-2xl border border-white/10 space-y-8">
             {notification.message && <Notification message={notification.message} isError={notification.isError} />}
-            <h2 className="text-3xl font-bold mb-4">My Saved Recipes</h2>
-            <p className="text-gray-300 mb-6">Your personal digital cookbook.</p>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {recipes.length > 0 ? (
-                    recipes.map(recipe => {
-                        const { average, count } = calculateAverageRating(recipe.ratings);
+            <HorizontalScrollSection title="Saved Recipes" items={recipes} onSelect={handleSelectRecipe} onDelete={(id) => handleDelete('recipes', id)} calculateRating={calculateAverageRating} themeColor="green" />
+            <HorizontalScrollSection title="Saved Workouts" items={workouts} onSelect={handleSelectWorkout} onDelete={(id) => handleDelete('workouts', id)} calculateRating={calculateAverageRating} themeColor="red" />
+        </div>
+    );
+};
+
+const HorizontalScrollSection = ({ title, items, onSelect, onDelete, calculateRating, themeColor }) => {
+    const scrollContainerRef = useRef(null);
+    const theme = {
+        green: { text: 'text-green-300', shadow: 'hover:shadow-green-500/10' },
+        red: { text: 'text-red-300', shadow: 'hover:shadow-red-500/10' }
+    }[themeColor];
+
+    const scroll = (direction) => {
+        if (scrollContainerRef.current) {
+            scrollContainerRef.current.scrollBy({
+                left: direction * (scrollContainerRef.current.offsetWidth * 0.8),
+                behavior: 'smooth'
+            });
+        }
+    };
+
+    const handleDeleteClick = (item, e) => {
+        e.stopPropagation();
+        onDelete(item._id);
+    };
+
+    return (
+        <div>
+            <div className="flex justify-between items-center mb-4">
+                <h2 className="text-3xl font-bold">{title}</h2>
+                <div className="flex gap-2">
+                    <button onClick={() => scroll(-1)} className="p-2 rounded-full bg-black/20 hover:bg-white/10 transition-colors"><ChevronLeft/></button>
+                    <button onClick={() => scroll(1)} className="p-2 rounded-full bg-black/20 hover:bg-white/10 transition-colors"><ChevronRight/></button>
+                </div>
+            </div>
+            
+            <div ref={scrollContainerRef} className="flex overflow-x-auto gap-6 pb-4 scrollbar-hide">
+                {items.length > 0 ? (
+                    items.map(item => {
+                        const { average, count } = calculateRating(item.ratings);
                         return (
-                            <div key={recipe._id} className="bg-black/20 p-4 rounded-xl flex flex-col justify-between transition-all hover:shadow-lg hover:shadow-green-500/10">
+                            <div key={item._id} onClick={() => onSelect(item)} className={`bg-black/20 p-4 rounded-xl flex flex-col justify-between transition-all ${theme.shadow} w-64 flex-shrink-0 cursor-pointer`}>
                                 <div>
-                                    <h3 className="text-xl font-bold text-green-300 mb-2">{recipe.title}</h3>
-                                    <p className="text-gray-400 text-sm line-clamp-3 mb-2">{Array.isArray(recipe.ingredients) ? recipe.ingredients.join(', ') : ''}</p>
+                                    <h3 className={`text-xl font-bold ${theme.text} mb-2 line-clamp-2`}>{item.title}</h3>
+                                    <p className="text-gray-400 text-sm line-clamp-3 mb-2">{Array.isArray(item.ingredients) ? item.ingredients.join(', ') : Array.isArray(item.targetMuscles) ? item.targetMuscles.join(', ') : ''}</p>
                                     <div className="text-sm flex items-center gap-2 text-yellow-400">
                                         <Star size={16} fill="currentColor"/>
                                         <span className="font-bold">{average}</span>
@@ -773,21 +1081,22 @@ const SavedRecipesTab = ({ token, userId, showModal, hideModal }) => {
                                     </div>
                                 </div>
                                 <div className="mt-4 flex gap-2 justify-end">
-                                    <button onClick={() => handleDeleteClick(recipe)} className="p-2 text-red-400 hover:bg-red-500/20 rounded-full"><Trash2 size={18}/></button>
-                                    <button onClick={() => handleSelectRecipe(recipe)} className="flex-grow bg-green-500/80 hover:bg-green-500 text-white font-bold py-2 px-4 rounded-lg transition-colors">View</button>
+                                    <button onClick={(e) => handleDeleteClick(item, e)} className="p-2 text-red-400 hover:bg-red-500/20 rounded-full"><Trash2 size={18}/></button>
+                                    <button onClick={() => onSelect(item)} className="flex-grow bg-gray-500/80 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg transition-colors">View</button>
                                 </div>
                             </div>
                         )
                     })
                 ) : (
-                    <p className="text-center text-gray-400 py-8 col-span-full">You haven't saved any recipes yet.</p>
+                    <div className="text-center text-gray-400 py-8 w-full">You haven't saved any {title.toLowerCase().replace('saved ','')} yet.</div>
                 )}
             </div>
         </div>
     );
 };
 
-const RecipeDetailView = ({ recipe, onClose, showNotification, token, userId, isGenerated, onRecipeUpdate }) => {
+
+const RecipeDetailView = ({ recipe, onClose, showNotification, token, userId, isGenerated, onUpdate, onSave }) => {
     const [isSaving, setIsSaving] = useState(false);
     const [currentRecipe, setCurrentRecipe] = useState(recipe);
 
@@ -808,7 +1117,8 @@ const RecipeDetailView = ({ recipe, onClose, showNotification, token, userId, is
         setIsSaving(true);
         try {
             await api.post('/api/recipes', { ...currentRecipe, userId: undefined }, authHeader(token));
-            showNotification('Recipe saved successfully!');
+            showNotification('Recipe saved to Favorites!');
+            if (onSave) onSave(); // This will re-fetch the favorites list
             onClose();
         } catch (error) {
             showNotification("Error: Could not save recipe.", true);
@@ -838,8 +1148,7 @@ const RecipeDetailView = ({ recipe, onClose, showNotification, token, userId, is
             const { data } = await api.post(`/api/recipes/${currentRecipe._id}/rate`, { rating: newRating }, authHeader(token));
             const updatedRecipe = { ...currentRecipe, ratings: data.ratings };
             setCurrentRecipe(updatedRecipe);
-            if (onRecipeUpdate) onRecipeUpdate(updatedRecipe);
-            showNotification('Your rating has been submitted!');
+            if (onUpdate) onUpdate(updatedRecipe);
         } catch (error) {
             showNotification('Failed to submit rating.', true);
             console.error(error);
@@ -849,7 +1158,7 @@ const RecipeDetailView = ({ recipe, onClose, showNotification, token, userId, is
     const handleCommentsUpdate = (newComments) => {
         const updatedRecipe = { ...currentRecipe, comments: newComments };
         setCurrentRecipe(updatedRecipe);
-        if (onRecipeUpdate) onRecipeUpdate(updatedRecipe);
+        if (onUpdate) onUpdate(updatedRecipe);
     };
 
     const getShareableText = () => {
@@ -882,7 +1191,7 @@ const RecipeDetailView = ({ recipe, onClose, showNotification, token, userId, is
         printWindow.print();
     };
 
-    const userRatingObj = currentRecipe.ratings?.find(r => r.userId === userId);
+    const userRatingObj = currentRecipe.ratings?.find(r => r.user === userId);
     const myRating = userRatingObj ? userRatingObj.rating : 0;
 
     return (
@@ -910,7 +1219,8 @@ const RecipeDetailView = ({ recipe, onClose, showNotification, token, userId, is
                      <p className="text-sm text-gray-400 mb-3">Your rating is visible to the community.</p>
                      <StarRating rating={myRating} onRatingChange={handleRatingChange} />
                      <CommentSection 
-                        recipeId={currentRecipe._id}
+                        itemType="recipes"
+                        itemId={currentRecipe._id}
                         initialComments={currentRecipe.comments}
                         token={token}
                         userId={userId}
@@ -934,9 +1244,173 @@ const RecipeDetailView = ({ recipe, onClose, showNotification, token, userId, is
                 </div>
                 
                 <div className="flex flex-wrap gap-2 justify-end">
-                    {isGenerated && <button onClick={handleSave} disabled={isSaving} className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-colors disabled:bg-gray-500">{isSaving ? 'Saving...' : <><Save size={18}/> Save</>}</button>}
+                    {isGenerated && <button onClick={handleSave} disabled={isSaving} className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-colors disabled:bg-gray-500">{isSaving ? 'Saving...' : <><Save size={18}/> Save to Favorites</>}</button>}
                     <button onClick={handleShare} className="flex items-center gap-2 bg-gray-600/50 hover:bg-gray-600/80 text-white font-bold py-2 px-4 rounded-lg transition-colors"><Share2 size={18}/> Share</button>
                     <ExportMenu getText={getShareableText} getTitle={() => currentRecipe.title || 'Recipe'} />
+                    <button onClick={handlePrint} className="flex items-center gap-2 bg-gray-600/50 hover:bg-gray-600/80 text-white font-bold py-2 px-4 rounded-lg transition-colors"><Printer size={18}/> Print</button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const WorkoutDetailView = ({ workout, onClose, showNotification, token, userId, isGenerated, onUpdate, onSave }) => {
+    const [isSaving, setIsSaving] = useState(false);
+    const [currentWorkout, setCurrentWorkout] = useState(workout);
+
+    useEffect(() => {
+        setCurrentWorkout(workout);
+    }, [workout]);
+
+    const formatInstructions = (instructions) => {
+        if (instructions) {
+            if (Array.isArray(instructions)) return instructions.map(inst => `- ${inst}`).join('\n');
+            if (typeof instructions === 'string') return instructions.replace(/\\n/g, '\n');
+        }
+        return 'Instructions not available.';
+    };
+    
+    const handleSave = async () => {
+        if (!currentWorkout) return;
+        setIsSaving(true);
+        try {
+            await api.post('/api/workouts', { ...currentWorkout, userId: undefined }, authHeader(token));
+            showNotification('Workout saved to Favorites!');
+            if(onSave) onSave(); // This will re-fetch the favorites list
+            onClose();
+        } catch (error) {
+            showNotification("Error: Could not save workout.", true);
+        } finally {
+            setIsSaving(false);
+        }
+    };
+    
+    const handleFeedback = async (feedbackType) => {
+        if (feedbackType === 'dislike') {
+            try {
+                await api.post('/api/users/feedback', { dislikedWorkoutTitle: currentWorkout.title }, authHeader(token));
+                showNotification('Thanks! We won\'t show you this again.');
+                onClose();
+            } catch (error) {
+                showNotification('Could not save feedback.', true);
+            }
+        }
+        if (feedbackType === 'like') {
+            showNotification('Glad you liked it!');
+        }
+    };
+
+    const handleRatingChange = async (newRating) => {
+        if (!currentWorkout._id) return;
+        try {
+            const { data } = await api.post(`/api/workouts/${currentWorkout._id}/rate`, { rating: newRating }, authHeader(token));
+            const updatedWorkout = { ...currentWorkout, ratings: data.ratings };
+            setCurrentWorkout(updatedWorkout);
+            if (onUpdate) onUpdate(updatedWorkout);
+            showNotification('Your rating has been submitted!');
+        } catch (error) {
+            showNotification('Failed to submit rating.', true);
+            console.error(error);
+        }
+    };
+
+    const handleCommentsUpdate = (newComments) => {
+        const updatedWorkout = { ...currentWorkout, comments: newComments };
+        setCurrentWorkout(updatedWorkout);
+        if (onUpdate) onUpdate(updatedWorkout);
+    };
+
+    const getShareableText = () => {
+        return `Workout: ${currentWorkout.title}\n\nEquipment:\n${(Array.isArray(currentWorkout.equipmentNeeded) ? currentWorkout.equipmentNeeded.join('\n') : 'N/A')}\n\nInstructions:\n${formatInstructions(currentWorkout.instructions)}`;
+    };
+
+    const handleShare = async () => {
+        const text = getShareableText();
+        if (navigator.share) {
+            try {
+                await navigator.share({ title: currentWorkout.title, text });
+            } catch (err) {
+                if (err.name !== 'AbortError') {
+                    navigator.clipboard.writeText(text);
+                    showNotification('Workout copied to clipboard!');
+                }
+            }
+        } else {
+            navigator.clipboard.writeText(text);
+            showNotification('Workout copied to clipboard!');
+        }
+    };
+    
+    const handlePrint = () => {
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(`<html><head><title>${currentWorkout.title}</title><style>body{font-family:sans-serif;line-height:1.6;}ul{padding-left:20px;}</style></head><body>`);
+        printWindow.document.write(`<h2>${currentWorkout.title}</h2><h4>Equipment</h4><ul>${Array.isArray(currentWorkout.equipmentNeeded) ? currentWorkout.equipmentNeeded.map(eq => `<li>${eq}</li>`).join('') : ''}</ul><h4>Instructions</h4><p>${formatInstructions(currentWorkout.instructions).replace(/\n/g, '<br>')}</p>`);
+        printWindow.document.write('</body></html>');
+        printWindow.document.close();
+        printWindow.print();
+    };
+
+    const userRatingObj = currentWorkout.ratings?.find(r => r.user === userId);
+    const myRating = userRatingObj ? userRatingObj.rating : 0;
+
+    return (
+        <div className="bg-black/75 backdrop-blur-xl p-6 md:p-8 rounded-2xl relative max-h-[85vh] overflow-y-auto border border-white/10 w-full">
+            <button onClick={onClose} className="absolute top-4 right-4 text-white hover:text-gray-300 z-10 p-2 rounded-full hover:bg-white/10"><X size={24}/></button>
+            
+            <h3 className="text-3xl font-bold mb-4 text-red-300 text-center">{currentWorkout.title || 'Untitled Workout'}</h3>
+            
+            <div className="grid md:grid-cols-2 gap-x-8">
+                <div>
+                    <h4 className="text-xl font-semibold mb-2">Equipment Needed</h4>
+                    <ul className="list-disc list-inside space-y-1 text-gray-200">
+                        {Array.isArray(currentWorkout.equipmentNeeded) && currentWorkout.equipmentNeeded.length > 0 ? currentWorkout.equipmentNeeded.map((eq, i) => <li key={i}>{eq}</li>) : <li>No specific equipment required.</li>}
+                    </ul>
+                </div>
+                <div className="mt-4 md:mt-0">
+                    <h4 className="text-xl font-semibold mb-2">Instructions</h4>
+                    <div className="text-gray-200 whitespace-pre-line leading-relaxed">{formatInstructions(currentWorkout.instructions)}</div>
+                     {currentWorkout.videoUrl && (
+                        <a href={currentWorkout.videoUrl} target="_blank" rel="noopener noreferrer" className="mt-4 inline-flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">
+                            <Video size={18}/> Watch Tutorial
+                        </a>
+                    )}
+                </div>
+            </div>
+            
+            {!isGenerated && (
+                <div className="mt-6 pt-6 border-t border-white/10">
+                     <h4 className="text-xl font-semibold mb-2">Rate this Workout</h4>
+                     <p className="text-sm text-gray-400 mb-3">Your rating is visible to the community.</p>
+                     <StarRating rating={myRating} onRatingChange={handleRatingChange} />
+                     <CommentSection 
+                        itemType="workouts"
+                        itemId={currentWorkout._id}
+                        initialComments={currentWorkout.comments}
+                        token={token}
+                        userId={userId}
+                        onCommentsUpdate={handleCommentsUpdate}
+                     />
+                </div>
+            )}
+
+            <div className="mt-6 pt-4 border-t border-white/10 flex flex-wrap gap-2 justify-between items-center">
+                <div className="flex gap-2">
+                    {isGenerated && (
+                        <>
+                            <button onClick={() => handleFeedback('like')} className="p-2 text-green-400 bg-green-500/20 rounded-full hover:bg-green-500/40 transition-colors" title="I like this">
+                                <ThumbsUp size={20}/>
+                            </button>
+                             <button onClick={() => handleFeedback('dislike')} className="p-2 text-red-400 bg-red-500/20 rounded-full hover:bg-red-500/40 transition-colors" title="I dislike this">
+                                <ThumbsDown size={20}/>
+                            </button>
+                        </>
+                    )}
+                </div>
+                
+                <div className="flex flex-wrap gap-2 justify-end">
+                    {isGenerated && <button onClick={handleSave} disabled={isSaving} className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition-colors disabled:bg-gray-500">{isSaving ? 'Saving...' : <><Save size={18}/> Save to Favorites</>}</button>}
+                    <button onClick={handleShare} className="flex items-center gap-2 bg-gray-600/50 hover:bg-gray-600/80 text-white font-bold py-2 px-4 rounded-lg transition-colors"><Share2 size={18}/> Share</button>
+                    <ExportMenu getText={getShareableText} getTitle={() => currentWorkout.title || 'Workout'} />
                     <button onClick={handlePrint} className="flex items-center gap-2 bg-gray-600/50 hover:bg-gray-600/80 text-white font-bold py-2 px-4 rounded-lg transition-colors"><Printer size={18}/> Print</button>
                 </div>
             </div>
@@ -950,17 +1424,34 @@ const AccountSettingsTab = ({ token, onProfileUpdate }) => {
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState('');
     const [notification, setNotification] = useState('');
+    const [bmi, setBmi] = useState(null);
     const [profileData, setProfileData] = useState({
         username: '',
         email: '',
         allergies: [],
-        foodsToAvoid: []
+        foodsToAvoid: [],
+        age: '',
+        height: { feet: '', inches: '' },
+        weight: '',
     });
     
     const [passwordData, setPasswordData] = useState({
         currentPassword: '',
         newPassword: ''
     });
+
+    useEffect(() => {
+        const { weight, height } = profileData;
+        const totalInches = (parseInt(height.feet) * 12) + parseInt(height.inches);
+        const weightInLbs = parseInt(weight);
+
+        if (weightInLbs > 0 && totalInches > 0) {
+            const calculatedBmi = ((weightInLbs / (totalInches * totalInches)) * 703).toFixed(1);
+            setBmi(calculatedBmi);
+        } else {
+            setBmi(null);
+        }
+    }, [profileData.weight, profileData.height]);
 
     const fetchProfile = useCallback(async () => {
         setIsLoading(true);
@@ -970,7 +1461,10 @@ const AccountSettingsTab = ({ token, onProfileUpdate }) => {
                 username: data.username || '',
                 email: data.email || '',
                 allergies: data.allergies || [],
-                foodsToAvoid: data.foodsToAvoid || []
+                foodsToAvoid: data.foodsToAvoid || [],
+                age: data.age || '',
+                height: data.height || { feet: '', inches: '' },
+                weight: data.weight || '',
             });
         } catch (err) {
             setError('Could not load profile data.');
@@ -1002,7 +1496,11 @@ const AccountSettingsTab = ({ token, onProfileUpdate }) => {
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
-        setProfileData(prev => ({ ...prev, [name]: value }));
+        if (name === 'feet' || name === 'inches') {
+            setProfileData(prev => ({ ...prev, height: { ...prev.height, [name]: value } }));
+        } else {
+            setProfileData(prev => ({ ...prev, [name]: value }));
+        }
     };
 
     const handlePasswordChange = (e) => {
@@ -1013,7 +1511,14 @@ const AccountSettingsTab = ({ token, onProfileUpdate }) => {
     const handleSaveChanges = async () => {
         setIsSaving(true);
         setError('');
-        const payload = { username: profileData.username, email: profileData.email };
+        const payload = { 
+            username: profileData.username, 
+            email: profileData.email,
+            age: profileData.age,
+            height: profileData.height,
+            weight: profileData.weight
+        };
+
         if (passwordData.newPassword) {
             if (!passwordData.currentPassword) {
                 showNotification('Please enter your current password to set a new one.', true);
@@ -1047,6 +1552,35 @@ const AccountSettingsTab = ({ token, onProfileUpdate }) => {
             
             <div className="grid md:grid-cols-2 gap-8">
                 <div className="space-y-6">
+                     <div className="space-y-6 bg-black/20 p-4 rounded-lg">
+                        <h3 className="text-xl font-semibold mb-2">Biometrics for AI</h3>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-300 mb-1">Age</label>
+                                <input name="age" type="number" placeholder="Years" value={profileData.age} onChange={handleInputChange} className="w-full bg-black/30 p-2 rounded-lg border border-transparent focus:border-green-400 focus:outline-none" />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-300 mb-1">Weight (lbs)</label>
+                                <input name="weight" type="number" placeholder="lbs" value={profileData.weight} onChange={handleInputChange} className="w-full bg-black/30 p-2 rounded-lg border border-transparent focus:border-green-400 focus:outline-none" />
+                            </div>
+                        </div>
+                        <div>
+                             <label className="block text-sm font-medium text-gray-300 mb-1">Height</label>
+                             <div className="grid grid-cols-2 gap-4">
+                                <input name="feet" type="number" placeholder="Feet" value={profileData.height.feet} onChange={handleInputChange} className="w-full bg-black/30 p-2 rounded-lg border border-transparent focus:border-green-400 focus:outline-none" />
+                                <input name="inches" type="number" placeholder="Inches" value={profileData.height.inches} onChange={handleInputChange} className="w-full bg-black/30 p-2 rounded-lg border border-transparent focus:border-green-400 focus:outline-none" />
+                             </div>
+                        </div>
+                        {bmi && (
+                            <div>
+                                 <label className="block text-sm font-medium text-gray-300 mb-1">Estimated BMI</label>
+                                 <div className="w-full bg-green-500/20 text-green-200 font-bold p-3 rounded-lg text-center text-xl">
+                                    {bmi}
+                                 </div>
+                            </div>
+                        )}
+                     </div>
+
                     <TagInputSection 
                         title="Food Allergies" 
                         tags={profileData.allergies} 

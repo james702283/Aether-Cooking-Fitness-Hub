@@ -1,45 +1,48 @@
-const express = require('express');
-const cors = require('cors');
-const mongoose = require('mongoose');
-require('dotenv').config();
+import 'dotenv/config';
+import express from 'express';
+import cors from 'cors';
+import mongoose from 'mongoose';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// Route imports
+import userRoutes from './routes/user.routes.js';
+import recipeRoutes from './routes/recipe.routes.js';
+import logRoutes from './routes/log.routes.js';
+import uploadRoutes from './routes/upload.routes.js';
+import workoutRoutes from './routes/workout.routes.js';
 
 const app = express();
-const PORT = process.env.PORT || 5001;
 
-// --- Middleware ---
-
-// Specific CORS configuration to allow requests from the Vite frontend
-const corsOptions = {
-    origin: 'http://localhost:5173',
-    optionsSuccessStatus: 200
-};
-app.use(cors(corsOptions));
-
+// Middleware
+app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// --- Database Connection ---
-const uri = process.env.MONGO_URI;
-mongoose.connect(uri)
-    .then(() => {
-        console.log("MongoDB database connection established successfully.");
-    })
-    .catch(err => {
-        console.error("DATABASE CONNECTION FAILED:", err);
-        process.exit(1);
-    });
+// Database Connection
+mongoose.connect(process.env.MONGO_URI)
+    .then(() => console.log('MongoDB Connected Successfully'))
+    .catch((err) => console.error('MongoDB Connection Error:', err));
+    
+// API Routes
+app.use('/api/users', userRoutes);
+app.use('/api/recipes', recipeRoutes);
+app.use('/api/logs', logRoutes);
+app.use('/api/upload', uploadRoutes);
+app.use('/api/workouts', workoutRoutes);
 
-// --- Pre-load Models ---
-require('./models/User.model');
-require('./models/Recipe.model');
-require('./models/DailyLog.model');
+// Fix for __dirname in ES Modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-// --- API Routes ---
-app.use('/api/users', require('./routes/user.routes'));
-app.use('/api/recipes', require('./routes/recipe.routes'));
-app.use('/api/logs', require('./routes/log.routes'));
-app.use('/api/upload', require('./routes/upload.routes'));
+// Serve Uploaded Files Statically
+app.use('/uploads', express.static(path.join(__dirname, '/uploads')));
 
-// --- Start the Server ---
-app.listen(PORT, () => {
-    console.log(`Server is running on port: ${PORT}`);
+// Root endpoint
+app.get('/', (req, res) => {
+    res.send('Aether Hub API is running...');
 });
+
+// Server Initialization
+const PORT = process.env.PORT || 5001;
+app.listen(PORT, () => console.log(`Server is live on port ${PORT}`));

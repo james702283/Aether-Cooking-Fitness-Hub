@@ -40,4 +40,3 @@ Thumbs.db
 
 # Ignore batch files
 *.bat
-node_modules

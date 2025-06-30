@@ -1,10 +1,10 @@
-const router = require('express').Router();
-const mongoose = require('mongoose');
-const protect = require('../middleware/authMiddleware');
-const DailyLog = require('../models/DailyLog.model');
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+import express from 'express';
+import mongoose from 'mongoose';
+import protect from '../middleware/authMiddleware.js';
+import DailyLog from '../models/DailyLog.model.js';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
-// Initialize AI
+const router = express.Router();
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash"});
 
@@ -16,7 +16,6 @@ const getOrCreateLog = async (userId, date) => {
     return log;
 };
 
-// GET /api/logs/month?year=<year>&month=<month>
 router.get('/month', protect, async (req, res) => {
     try {
         const { year, month } = req.query;
@@ -53,17 +52,13 @@ router.get('/month', protect, async (req, res) => {
                 caloriesOut: day.caloriesOut
             };
         });
-
         res.json(formattedData);
-
     } catch (error) {
         console.error('Error fetching monthly log data:', error);
         res.status(500).json({ message: 'Server error fetching monthly log data' });
     }
 });
 
-
-// GET LOG DATA FOR A SINGLE DAY
 router.get('/:date', protect, async (req, res) => {
     try {
         const log = await DailyLog.findOne({ userId: req.user._id, date: req.params.date });
@@ -74,24 +69,17 @@ router.get('/:date', protect, async (req, res) => {
     }
 });
 
-// --- START: UPGRADED MEAL LOG ENDPOINT ---
 router.post('/meal', protect, async (req, res) => {
-    // Now accepts structured mealData object
     const { date, mealType, mealData } = req.body;
-
     if (!date || !mealType || !mealData || !mealData.name) {
         return res.status(400).json({ message: 'Date, meal type, and meal data with a name are required.' });
     }
-
     try {
         const description = `${mealData.quantity || '1'} ${mealData.size || ''} ${mealData.name}`.trim();
-        
         const prompt = `Estimate the calories for the following meal: "${description}". Respond with only a single number.`;
-        
         const result = await model.generateContent(prompt);
         const text = result.response.text();
         const estimatedCalories = parseInt(text.replace(/[^0-9]/g, ''), 10) || 0;
-
         const log = await getOrCreateLog(req.user._id, date);
         log.meals.push({ mealType, description, calories: estimatedCalories });
         const savedLog = await log.save();
@@ -101,9 +89,7 @@ router.post('/meal', protect, async (req, res) => {
         res.status(500).json({ message: 'Error logging meal' });
     }
 });
-// --- END: UPGRADED MEAL LOG ENDPOINT ---
 
-// Helper function to create a readable workout description from structured data
 const createWorkoutDescription = (data) => {
     let description = data.type;
     const details = [];
@@ -119,27 +105,18 @@ const createWorkoutDescription = (data) => {
     return description;
 };
 
-// UPGRADED WORKOUT LOG ENDPOINT
 router.post('/workout', protect, async (req, res) => {
     const { date, workoutData } = req.body;
-
     if (!date || !workoutData || !workoutData.type) {
         return res.status(400).json({ message: 'Date and workout data with a type are required.' });
     }
-
     try {
-        const promptDetails = Object.entries(workoutData)
-            .map(([key, value]) => `${key}: ${value}`)
-            .join(', ');
-
+        const promptDetails = Object.entries(workoutData).map(([key, value]) => `${key}: ${value}`).join(', ');
         const prompt = `Estimate the calories burned for the following workout activity. Respond with only a single number. Workout details: ${promptDetails}`;
-        
         const result = await model.generateContent(prompt);
         const text = result.response.text();
         const estimatedCaloriesBurned = parseInt(text.replace(/[^0-9]/g, ''), 10) || 0;
-
         const description = createWorkoutDescription(workoutData);
-
         const log = await getOrCreateLog(req.user._id, date);
         log.workouts.push({ description, caloriesBurned: estimatedCaloriesBurned });
         const savedLog = await log.save();
@@ -150,8 +127,6 @@ router.post('/workout', protect, async (req, res) => {
     }
 });
 
-
-// UPDATE JOURNAL
 router.put('/journal', protect, async (req, res) => {
     const { date, mealNotes, workoutNotes } = req.body;
     try {
@@ -166,7 +141,6 @@ router.put('/journal', protect, async (req, res) => {
     }
 });
 
-// ADD AN IMAGE URL TO A LOG
 router.post('/image', protect, async (req, res) => {
     const { date, type, url } = req.body;
     if (!date || !type || !url) {
@@ -183,21 +157,15 @@ router.post('/image', protect, async (req, res) => {
     }
 });
 
-// --- DELETE ENDPOINTS ---
-
-// DELETE a specific meal entry from a log
 router.delete('/meal/:logId/:mealId', protect, async (req, res) => {
     try {
         const { logId, mealId } = req.params;
         const log = await DailyLog.findOneAndUpdate(
             { _id: logId, userId: req.user._id },
             { $pull: { meals: { _id: mealId } } },
-            { new: true } // Return the updated document
+            { new: true }
         );
-
-        if (!log) {
-            return res.status(404).json({ message: "Log or meal entry not found." });
-        }
+        if (!log) return res.status(404).json({ message: "Log or meal entry not found." });
         res.status(200).json(log);
     } catch (error) {
         console.error("Error deleting meal entry:", error);
@@ -205,19 +173,15 @@ router.delete('/meal/:logId/:mealId', protect, async (req, res) => {
     }
 });
 
-// DELETE a specific workout entry from a log
 router.delete('/workout/:logId/:workoutId', protect, async (req, res) => {
     try {
         const { logId, workoutId } = req.params;
         const log = await DailyLog.findOneAndUpdate(
             { _id: logId, userId: req.user._id },
             { $pull: { workouts: { _id: workoutId } } },
-            { new: true } // Return the updated document
+            { new: true }
         );
-
-        if (!log) {
-            return res.status(404).json({ message: "Log or workout entry not found." });
-        }
+        if (!log) return res.status(404).json({ message: "Log or workout entry not found." });
         res.status(200).json(log);
     } catch (error) {
         console.error("Error deleting workout entry:", error);
@@ -225,33 +189,20 @@ router.delete('/workout/:logId/:workoutId', protect, async (req, res) => {
     }
 });
 
-// --- CORRECTED DELETE IMAGE ROUTE ---
-// DELETE an image from a log entry
 router.delete("/image/:logId/:imageId", protect, async (req, res) => {
     try {
         const { logId, imageId } = req.params;
-
-        // Use findOneAndUpdate with $pull for a single atomic and more reliable operation
         const updatedLog = await DailyLog.findOneAndUpdate(
-            { _id: logId, userId: req.user._id },      // Query to find the correct log for the authenticated user
-            { $pull: { images: { _id: imageId } } }, // The operation to remove the image from the array
-            { new: true }                              // Option to return the document *after* the update
+            { _id: logId, userId: req.user._id },
+            { $pull: { images: { _id: imageId } } },
+            { new: true }
         );
-
-        if (!updatedLog) {
-            // This will be null if the log wasn't found or an image with that ID didn't exist in the array
-            return res.status(404).json({ message: "Log or image not found." });
-        }
-
-        // TODO: Optionally, add logic here to delete the image from your cloud storage (e.g., Cloudinary, S3) as well.
-
-        res.status(200).json(updatedLog); // Return the updated log object to the frontend
-
+        if (!updatedLog) return res.status(404).json({ message: "Log or image not found." });
+        res.status(200).json(updatedLog);
     } catch (error) {
         console.error("Error deleting image:", error);
         res.status(500).json({ message: "Server error while deleting image." });
     }
 });
 
-
-module.exports = router;
+export default router;
