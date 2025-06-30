@@ -1,18 +1,21 @@
-<p align="center">
-  <img src="./assets/aether-hub-screenshot.jpg" alt="Aether Cooking & Fitness Hub Screenshot" width="800"/>
-</p>
-
 <h1 align="center">Aether Cooking & Fitness Hub</h1>
 
 <p align="center">
   <strong>The Ultimate AI-Powered Wellness Ecosystem for Personalized Nutrition and Fitness.</strong>
 </p>
 
+<p align="center">
+  <img src="./assets/aether-hub-screenshot-1.jpg" alt="Aether AI Recipe Generator" width="800"/>
+</p>
+<p align="center">
+  <img src="./assets/aether-hub-screenshot-2.jpg" alt="Aether AI Workout Finder" width="800"/>
+</p>
+
 ---
 
 ## A New Era of Personal Wellness
 
-Welcome to Aether, a revolutionary full-stack application that redefines the boundaries between nutrition and fitness. Aether is not just an app; it is your all-in-one personal wellness assistant, leveraging state-of-the-art Artificial Intelligence to create a deeply personalized health journey that adapts to your unique body, lifestyle, and goals.
+Welcome to **Aether**, a revolutionary full-stack application that redefines the boundaries between nutrition and fitness. Aether is not just an app; it is your all-in-one personal wellness assistant, leveraging state-of-the-art Artificial Intelligence to create a deeply personalized health journey that adapts to your unique body, lifestyle, and goals.
 
 Our mission is to empower you with a single, intuitive platform that seamlessly integrates the two pillars of well-being: what you eat and how you move. By bridging the gap between the kitchen and the gym, Aether offers an unparalleled suite of tools. From generating bespoke recipes based on ingredients you already own to creating tailored workout plans that match your fitness level and available equipment, Aether is the definitive tool for modern, holistic living.
 
