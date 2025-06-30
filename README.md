@@ -5,10 +5,10 @@
 </p>
 
 <p align="center">
-  <img src="./assets/aether-hub-screenshot-1.jpg" alt="Aether AI Recipe Generator" width="800"/>
+  <img src="./assets/aether-hub-screenshot-1.png" alt="Aether AI Recipe Generator" width="800"/>
 </p>
 <p align="center">
-  <img src="./assets/aether-hub-screenshot-2.jpg" alt="Aether AI Workout Finder" width="800"/>
+  <img src="./assets/aether-hub-screenshot-2.png" alt="Aether AI Workout Finder" width="800"/>
 </p>
 
 ---
